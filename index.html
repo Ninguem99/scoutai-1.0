@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scout AI — Análise Preditiva</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111; --surface2:#1a1a1a; --border:#2a2a2a;
+    --accent:#c8f135; --accent2:#ff4d4d; --text:#f0f0f0; --muted:#666;
+    --success:#4ade80; --warning:#facc15; --danger:#f87171;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;}
+
+  header{border-bottom:1px solid var(--border);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,10,0.96);backdrop-filter:blur(10px);z-index:100;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;}
+  .logo span{color:var(--accent);}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;border:1px solid var(--accent);color:var(--accent);padding:4px 10px;border-radius:2px;letter-spacing:2px;}
+
+  main{max-width:1100px;margin:0 auto;padding:36px 20px;}
+
+  .tabs{display:flex;margin-bottom:24px;border-bottom:1px solid var(--border);}
+  .tab-btn{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;letter-spacing:2px;padding:10px 18px;background:none;border:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;text-transform:uppercase;}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab-panel{display:none;} .tab-panel.active{display:block;}
+
+  .step-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:18px;}
+  .step-card.active{border-color:var(--accent);}
+  .step-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .step-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent);background:rgba(200,241,53,0.08);border:1px solid var(--accent);width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:2px;}
+  .step-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;}
+
+  label{font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:6px;}
+  input,select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'IBM Plex Sans',sans-serif;font-size:0.9rem;border-radius:2px;outline:none;transition:border-color 0.2s;}
+  input:focus,select:focus{border-color:var(--accent);}
+  select option{background:#1a1a1a;}
+
+  .btn{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;letter-spacing:2px;padding:11px 20px;border-radius:2px;cursor:pointer;transition:all 0.2s;border:none;text-transform:uppercase;}
+  .btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-primary{background:var(--accent);color:#000;font-weight:600;}
+  .btn-primary:hover{background:#d4f53f;transform:translateY(-1px);}
+  .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+  .leagues-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+  .league-card{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:14px 12px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:10px;}
+  .league-card:hover{border-color:var(--accent);}
+  .league-card.selected{border-color:var(--accent);background:rgba(200,241,53,0.07);}
+  .league-flag{font-size:1.3rem;}
+  .league-info{flex:1;overflow:hidden;}
+  .league-name{font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .league-country{font-size:0.65rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+  .rounds-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .round-chip{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;letter-spacing:1px;padding:7px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:all 0.15s;background:var(--surface2);}
+  .round-chip:hover{border-color:var(--accent);color:var(--accent);}
+  .round-chip.selected{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600;}
+  .round-chip.next{border-color:rgba(200,241,53,0.4);color:var(--accent);}
+
+  .fixture-item{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.15s;margin-bottom:8px;animation:slideIn 0.2s ease;}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .fixture-item:hover{border-color:rgba(200,241,53,0.4);}
+  .fixture-item.selected{border-color:var(--accent);background:rgba(200,241,53,0.06);}
+  .fixture-check{width:20px;height:20px;border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;flex-shrink:0;transition:all 0.15s;}
+  .fixture-item.selected .fixture-check{background:var(--accent);border-color:var(--accent);color:#000;}
+  .fixture-teams{flex:1;}
+  .fixture-matchup{font-weight:600;font-size:0.9rem;}
+  .fixture-meta{font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+  .fixture-date{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted);white-space:nowrap;}
+
+  .selected-summary{background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.25);border-radius:3px;padding:12px 16px;font-size:0.82rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);margin-bottom:14px;display:none;}
+  .context-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+  .ctx-block{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px;}
+  .ctx-match-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;margin-bottom:12px;}
+
+  .prediction-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:16px;animation:fadeUp 0.35s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .pred-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:10px;flex-wrap:wrap;}
+  .teams-display{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;}
+  .teams-display span{color:var(--accent);margin:0 10px;}
+  .confidence-pill{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;padding:5px 14px;border-radius:20px;font-weight:600;letter-spacing:1px;}
+  .conf-high{background:rgba(74,222,128,0.15);color:var(--success);border:1px solid rgba(74,222,128,0.3);}
+  .conf-mid{background:rgba(250,204,21,0.12);color:var(--warning);border:1px solid rgba(250,204,21,0.3);}
+  .conf-low{background:rgba(248,113,113,0.12);color:var(--danger);border:1px solid rgba(248,113,113,0.3);}
+  .verdict-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .verdict-box{flex:1;min-width:90px;background:var(--surface2);border-radius:3px;padding:12px;text-align:center;}
+  .verdict-box.highlight{border:1px solid var(--accent);background:rgba(200,241,53,0.06);}
+  .verdict-label{font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;display:block;margin-bottom:4px;}
+  .verdict-val{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1px;}
+  .prob-bars{margin-top:14px;}
+  .prob-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .prob-row-label{font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);width:70px;}
+  .prob-bar-track{flex:1;background:var(--surface2);border-radius:2px;height:6px;overflow:hidden;}
+  .prob-bar-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+  .fill-home{background:var(--accent);} .fill-draw{background:var(--muted);} .fill-away{background:var(--accent2);}
+  .prob-pct{font-size:0.72rem;font-family:'IBM Plex Mono',monospace;width:36px;text-align:right;}
+  .analysis-text{margin-top:14px;font-size:0.85rem;line-height:1.65;color:#bbb;border-top:1px solid var(--border);padding-top:14px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+  .stat-box{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px;text-align:center;}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);}
+  .stat-desc{font-size:0.7rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:1px;}
+  .history-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:0.85rem;gap:10px;flex-wrap:wrap;}
+  .result-tag{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;padding:3px 10px;border-radius:2px;letter-spacing:1px;}
+  .tag-correct{background:rgba(74,222,128,0.15);color:var(--success);}
+  .tag-wrong{background:rgba(248,113,113,0.12);color:var(--danger);}
+  .tag-pending{background:rgba(100,100,100,0.2);color:var(--muted);}
+  .empty-state{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.8rem;padding:30px 0;text-align:center;}
+  .alert-box{background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.25);border-radius:3px;padding:12px 16px;font-size:0.8rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);margin-bottom:14px;}
+  .alert-error{background:rgba(255,77,77,0.06);border-color:rgba(255,77,77,0.3);color:var(--danger);}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:8px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-line{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted);padding:16px 0;display:none;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .section-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+  .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  @media(max-width:600px){.form-row{grid-template-columns:1fr}.leagues-grid{grid-template-columns:1fr 1fr}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Scout<span>AI</span></div>
+  <div class="badge">v2.1 — APP</div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('analyze',this)">ANALISAR</button>
+    <button class="tab-btn" onclick="switchTab('history',this)">HISTÓRICO</button>
+    <button class="tab-btn" onclick="switchTab('settings',this)">CONFIGURAÇÕES</button>
+  </div>
+
+  <!-- ANALYZE -->
+  <div class="tab-panel active" id="tab-analyze">
+
+    <div class="step-card active">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Escolher Campeonato</div></div>
+      <div class="leagues-grid" id="leagues-grid"></div>
+      <div style="margin-top:14px;">
+        <div class="section-label" style="font-size:0.6rem;">OU PESQUISAR</div>
+        <input type="text" id="league-search" placeholder="Nome do campeonato..." style="max-width:300px;" oninput="filterLeagues()" />
+      </div>
+    </div>
+
+    <div class="step-card" id="step-round" style="display:none;">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Selecionar Jornada</div></div>
+      <div class="loading-line" id="loading-rounds"><span class="spinner"></span>A carregar jornadas...</div>
+      <div class="rounds-row" id="rounds-row"></div>
+    </div>
+
+    <div class="step-card" id="step-fixtures" style="display:none;">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Escolher Jogos</div></div>
+      <div class="loading-line" id="loading-fixtures"><span class="spinner"></span>A carregar jogos...</div>
+      <div class="selected-summary" id="selected-summary"></div>
+      <div id="fixtures-list"></div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-ghost" onclick="selectAllFixtures()">SELECIONAR TODOS</button>
+        <button class="btn btn-ghost" onclick="clearFixtureSelection()">LIMPAR SELEÇÃO</button>
+      </div>
+    </div>
+
+    <div class="step-card" id="step-context" style="display:none;">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Contexto Extra (Opcional)</div></div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;font-family:'IBM Plex Mono',monospace;">Desfalques, suspensões ou outras notas por jogo.</p>
+      <div id="context-blocks"></div>
+      <div class="form-row" style="margin-top:4px;">
+        <div>
+          <label>FILTRO DE CONFIANÇA MÍNIMA</label>
+          <select id="min-confidence">
+            <option value="60">60% — Mostrar todos</option>
+            <option value="70">70% — Filtro moderado</option>
+            <option value="80" selected>80% — Recomendado</option>
+            <option value="85">85% — Filtro alto</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="analyze-section" style="text-align:center;margin:24px 0;display:none;">
+      <button class="btn btn-primary" id="analyze-btn" onclick="runAnalysis()" style="padding:16px 48px;font-size:0.9rem;">
+        ANALISAR JOGOS SELECIONADOS
+      </button>
+    </div>
+
+    <div class="loading-line" id="loading-analysis" style="text-align:center;padding:20px 0;">
+      <span class="spinner"></span>A processar análise com IA...
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="tab-panel" id="tab-history">
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num" id="s-total">0</div><div class="stat-desc">TOTAL</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-correct">0</div><div class="stat-desc">ACERTOS</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-wrong">0</div><div class="stat-desc">ERROS</div></div>
+      <div class="stat-box"><div class="stat-num" id="s-pct">—</div><div class="stat-desc">% ACERTO</div></div>
+    </div>
+    <div id="history-list"></div>
+    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="exportHistory()" style="font-size:0.7rem;">EXPORTAR JSON</button>
+      <button class="btn btn-ghost" onclick="clearHistory()" style="font-size:0.7rem;color:#f87171;border-color:#f87171;">LIMPAR HISTÓRICO</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="step-card">
+      <div class="step-header"><div class="step-num">⚙</div><div class="step-title">Chaves de API</div></div>
+      <div style="max-width:440px;display:flex;flex-direction:column;gap:16px;">
+        <div>
+          <label>API-FOOTBALL KEY</label>
+          <input type="password" id="football-key-input" placeholder="A tua chave API-Football..." />
+        </div>
+        <div>
+          <label>ANTHROPIC KEY (Claude AI)</label>
+          <input type="password" id="anthropic-key-input" placeholder="sk-ant-..." />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveKeys()">GUARDAR CHAVES</button>
+          <button class="btn btn-ghost" onclick="testConnection()">TESTAR LIGAÇÃO</button>
+        </div>
+        <div id="api-status" style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────
+const LEAGUES = [
+  {id:39,  name:'Premier League',      country:'Inglaterra', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+  {id:140, name:'La Liga',             country:'Espanha',    flag:'🇪🇸'},
+  {id:135, name:'Serie A',             country:'Itália',     flag:'🇮🇹'},
+  {id:78,  name:'Bundesliga',          country:'Alemanha',   flag:'🇩🇪'},
+  {id:61,  name:'Ligue 1',             country:'França',     flag:'🇫🇷'},
+  {id:94,  name:'Primeira Liga',       country:'Portugal',   flag:'🇵🇹'},
+  {id:88,  name:'Eredivisie',          country:'Holanda',    flag:'🇳🇱'},
+  {id:144, name:'Pro League',          country:'Bélgica',    flag:'🇧🇪'},
+  {id:71,  name:'Brasileirão',         country:'Brasil',     flag:'🇧🇷'},
+  {id:128, name:'Liga Profesional',    country:'Argentina',  flag:'🇦🇷'},
+  {id:2,   name:'Champions League',    country:'Europa',     flag:'🏆'},
+  {id:3,   name:'Europa League',       country:'Europa',     flag:'🌍'},
+  {id:848, name:'Conference League',   country:'Europa',     flag:'⭐'},
+  {id:307, name:'Saudi Pro League',    country:'Arábia',     flag:'🇸🇦'},
+  {id:253, name:'MLS',                 country:'EUA',        flag:'🇺🇸'},
+  {id:179, name:'Scottish Prem.',      country:'Escócia',    flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},
+];
+
+let selectedLeague = null, selectedRound = null;
+let selectedFixtures = new Set(), allFixtures = [];
+let history = JSON.parse(localStorage.getItem('scoutai_history') || '[]');
+
+function getFootballKey() { return localStorage.getItem('scoutai_fbkey') || ''; }
+function getAnthropicKey() { return localStorage.getItem('scoutai_aikey') || ''; }
+
+function saveKeys() {
+  const fk = document.getElementById('football-key-input').value.trim();
+  const ak = document.getElementById('anthropic-key-input').value.trim();
+  if (fk) localStorage.setItem('scoutai_fbkey', fk);
+  if (ak) localStorage.setItem('scoutai_aikey', ak);
+  document.getElementById('api-status').innerHTML = '<span style="color:var(--success)">✔ Chaves guardadas.</span>';
+}
+
+async function testConnection() {
+  document.getElementById('api-status').innerHTML = '<span class="spinner"></span> A testar...';
+  try {
+    const r = await footballApi('/status');
+    const info = r.response;
+    document.getElementById('api-status').innerHTML =
+      `<span style="color:var(--success)">✔ API Football OK — ${info.requests.current}/${info.requests.limit_day} chamadas hoje</span>`;
+  } catch(e) {
+    document.getElementById('api-status').innerHTML = `<span style="color:var(--danger)">✘ ${e.message}</span>`;
+  }
+}
+
+// ── API CALLS (via servidor local) ──────────────────────────────
+async function footballApi(endpoint, params = {}) {
+  const url = new URL('/api/football' + endpoint, window.location.origin);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const r = await fetch(url.toString(), {
+    headers: { 'x-football-key': getFootballKey() }
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const data = await r.json();
+  if (data.errors && Object.keys(data.errors).length > 0)
+    throw new Error(Object.values(data.errors).join(', '));
+  return data;
+}
+
+async function analyzeMatches(payload) {
+  const r = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-anthropic-key': getAnthropicKey()
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+// ── TABS ────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+// ── LEAGUES ─────────────────────────────────────────────────────
+window.onload = () => {
+  renderLeagues(LEAGUES);
+  renderHistory();
+  const fk = localStorage.getItem('scoutai_fbkey');
+  const ak = localStorage.getItem('scoutai_aikey');
+  if (fk) document.getElementById('football-key-input').value = fk;
+  if (ak) document.getElementById('anthropic-key-input').value = ak;
+};
+
+function renderLeagues(list) {
+  document.getElementById('leagues-grid').innerHTML = list.map(l => `
+    <div class="league-card ${selectedLeague?.id===l.id?'selected':''}" onclick="selectLeague(${l.id})">
+      <div class="league-flag">${l.flag}</div>
+      <div class="league-info">
+        <div class="league-name">${l.name}</div>
+        <div class="league-country">${l.country}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filterLeagues() {
+  const q = document.getElementById('league-search').value.toLowerCase();
+  renderLeagues(LEAGUES.filter(l => l.name.toLowerCase().includes(q) || l.country.toLowerCase().includes(q)));
+}
+
+async function selectLeague(id) {
+  selectedLeague = LEAGUES.find(l => l.id === id);
+  selectedRound = null; selectedFixtures.clear(); allFixtures = [];
+  renderLeagues(LEAGUES);
+
+  document.getElementById('step-round').style.display = 'block';
+  document.getElementById('step-fixtures').style.display = 'none';
+  document.getElementById('step-context').style.display = 'none';
+  document.getElementById('analyze-section').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+
+  const lr = document.getElementById('loading-rounds');
+  const rr = document.getElementById('rounds-row');
+  lr.style.display = 'block'; rr.innerHTML = '';
+
+  try {
+    const season = getSeason();
+    const [allData, curData] = await Promise.all([
+      footballApi('/fixtures/rounds', {league:id, season}),
+      footballApi('/fixtures/rounds', {league:id, season, current:true})
+    ]);
+    lr.style.display = 'none';
+    renderRounds(allData.response || [], curData.response?.[0] || null);
+  } catch(e) {
+    lr.style.display = 'none';
+    rr.innerHTML = `<div class="alert-box alert-error">Erro: ${e.message}</div>`;
+  }
+}
+
+function getSeason() {
+  const now = new Date(), m = now.getMonth()+1, y = now.getFullYear();
+  return m >= 7 ? y : y-1;
+}
+
+function renderRounds(rounds, current) {
+  const rr = document.getElementById('rounds-row');
+  if (!rounds.length) { rr.innerHTML = '<div class="empty-state">Nenhuma jornada encontrada.</div>'; return; }
+  const ci = rounds.indexOf(current);
+  const show = rounds.slice(Math.max(0, ci-2), ci+6);
+  rr.innerHTML = show.map(r => {
+    const label = r.replace('Regular Season - ','J').replace('Week ','S');
+    return `<div class="round-chip ${r===current?'next':''} ${selectedRound===r?'selected':''}" onclick="selectRound('${r.replace(/'/g,"\\'")}', this)">${label}</div>`;
+  }).join('') + `<div class="round-chip" onclick="showAllRounds(${JSON.stringify(rounds).replace(/"/g,'&quot;')})">VER TODAS ▾</div>`;
+}
+
+function showAllRounds(rounds) {
+  const rr = document.getElementById('rounds-row');
+  rr.innerHTML = rounds.map(r => {
+    const label = r.replace('Regular Season - ','J').replace('Week ','S');
+    return `<div class="round-chip ${selectedRound===r?'selected':''}" onclick="selectRound('${r.replace(/'/g,"\\'")}', this)">${label}</div>`;
+  }).join('');
+}
+
+async function selectRound(round) {
+  selectedRound = round;
+  selectedFixtures.clear(); allFixtures = [];
+  document.querySelectorAll('.round-chip').forEach(c => {
+    const label = round.replace('Regular Season - ','J').replace('Week ','S');
+    c.classList.toggle('selected', c.textContent.trim() === label);
+  });
+
+  document.getElementById('step-fixtures').style.display = 'block';
+  document.getElementById('step-context').style.display = 'none';
+  document.getElementById('analyze-section').style.display = 'none';
+
+  const lf = document.getElementById('loading-fixtures');
+  const fl = document.getElementById('fixtures-list');
+  lf.style.display = 'block'; fl.innerHTML = '';
+  document.getElementById('selected-summary').style.display = 'none';
+
+  try {
+    const data = await footballApi('/fixtures', {league:selectedLeague.id, season:getSeason(), round});
+    lf.style.display = 'none';
+    allFixtures = data.response || [];
+    renderFixtures();
+  } catch(e) {
+    lf.style.display = 'none';
+    fl.innerHTML = `<div class="alert-box alert-error">Erro: ${e.message}</div>`;
+  }
+}
+
+function renderFixtures() {
+  const fl = document.getElementById('fixtures-list');
+  if (!allFixtures.length) { fl.innerHTML = '<div class="empty-state">Nenhum jogo encontrado.</div>'; return; }
+  fl.innerHTML = allFixtures.map((f,i) => {
+    const date = new Date(f.fixture.date).toLocaleDateString('pt-PT',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const st = f.fixture.status.short;
+    const score = ['FT','AET','PEN'].includes(st) ? `${f.goals.home}-${f.goals.away}` : '';
+    return `<div class="fixture-item ${selectedFixtures.has(i)?'selected':''}" onclick="toggleFixture(${i})">
+      <div class="fixture-check">${selectedFixtures.has(i)?'✓':''}</div>
+      <div class="fixture-teams">
+        <div class="fixture-matchup">${f.teams.home.name} vs ${f.teams.away.name} ${score?`<span style="color:var(--accent);margin-left:8px;">${score}</span>`:''}</div>
+        <div class="fixture-meta">${f.league.name} · ${f.league.round}</div>
+      </div>
+      <div class="fixture-date">${date}</div>
+    </div>`;
+  }).join('');
+  updateSelectedSummary();
+}
+
+function toggleFixture(i) {
+  selectedFixtures.has(i) ? selectedFixtures.delete(i) : selectedFixtures.add(i);
+  renderFixtures(); updateContextBlocks(); updateAnalyzeBtn();
+}
+function selectAllFixtures() { allFixtures.forEach((_,i)=>selectedFixtures.add(i)); renderFixtures(); updateContextBlocks(); updateAnalyzeBtn(); }
+function clearFixtureSelection() { selectedFixtures.clear(); renderFixtures(); updateContextBlocks(); updateAnalyzeBtn(); }
+
+function updateSelectedSummary() {
+  const s = document.getElementById('selected-summary');
+  const n = selectedFixtures.size;
+  s.style.display = n>0?'block':'none';
+  if(n>0) s.textContent = `⚡ ${n} jogo(s) selecionado(s) para análise`;
+}
+
+function updateContextBlocks() {
+  const cb = document.getElementById('context-blocks');
+  const sel = [...selectedFixtures].map(i=>allFixtures[i]);
+  document.getElementById('step-context').style.display = sel.length?'block':'none';
+  cb.innerHTML = sel.map((f,i)=>`
+    <div class="ctx-block">
+      <div class="ctx-match-title">${f.teams.home.name} vs ${f.teams.away.name}</div>
+      <div class="context-grid">
+        <div><label>DESFALQUES CASA</label><input type="text" id="inj-home-${i}" placeholder="Lesionados, suspensos..."/></div>
+        <div><label>DESFALQUES FORA</label><input type="text" id="inj-away-${i}" placeholder="Lesionados, suspensos..."/></div>
+        <div><label>CONTEXTO ESPECIAL</label><input type="text" id="motiv-${i}" placeholder="Derbi, final, descida..."/></div>
+        <div><label>RELVADO</label><select id="field-${i}">
+          <option value="">Não especificar</option>
+          <option>Bom estado</option><option>Relvado pesado (chuva)</option><option>Sintético</option>
+        </select></div>
+      </div>
+    </div>`).join('');
+}
+
+function updateAnalyzeBtn() {
+  document.getElementById('analyze-section').style.display = selectedFixtures.size>0?'block':'none';
+  updateSelectedSummary();
+}
+
+// ── ANALYSIS ────────────────────────────────────────────────────
+async function runAnalysis() {
+  const selected = [...selectedFixtures].map(i=>allFixtures[i]);
+  const minConf = parseInt(document.getElementById('min-confidence').value);
+  const btn = document.getElementById('analyze-btn');
+  const loading = document.getElementById('loading-analysis');
+  const resultsDiv = document.getElementById('results');
+
+  btn.disabled = true; loading.style.display = 'block'; resultsDiv.innerHTML = '';
+
+  const matchesText = selected.map((f,i)=>{
+    const parts = [];
+    const injH = document.getElementById('inj-home-'+i)?.value.trim();
+    const injA = document.getElementById('inj-away-'+i)?.value.trim();
+    const mot  = document.getElementById('motiv-'+i)?.value.trim();
+    const fld  = document.getElementById('field-'+i)?.value.trim();
+    if(injH) parts.push(`Desfalques casa: ${injH}`);
+    if(injA) parts.push(`Desfalques fora: ${injA}`);
+    if(mot)  parts.push(`Contexto: ${mot}`);
+    if(fld)  parts.push(`Relvado: ${fld}`);
+    return `Jogo ${i+1}: ${f.teams.home.name} vs ${f.teams.away.name}${parts.length?' | '+parts.join(' | '):''}`;
+  }).join('\n');
+
+  const systemPrompt = `És um analista especialista em futebol. Para cada jogo analisa forma recente, historial de confrontos, qualidade dos plantéis, posição na tabela, estilo de jogo, golos marcados/sofridos e fatores contextuais.
+Responde APENAS com JSON válido, sem markdown. Array de objetos:
+[{"home":"...","away":"...","prediction":"Vitória Casa"|"Empate"|"Vitória Fora","score":"X-X","confidence":75,"homeWin":55,"draw":25,"awayWin":20,"btts":true,"over25":true,"keyFactors":["...","...","..."],"analysis":"3-4 frases."}]
+homeWin+draw+awayWin=100. confidence=certeza global 0-100.`;
+
+  try {
+    const data = await analyzeMatches({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{role:'user', content:`Campeonato: ${selectedLeague.name}\nJornada: ${selectedRound}\nTemporada: ${getSeason()}/${getSeason()+1}\n\nJogos:\n${matchesText}\n\nAnalisa todos e devolve o JSON.`}]
+    });
+
+    const raw = data.content.map(b=>b.text||'').join('');
+    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    renderResults(parsed, minConf);
+
+    parsed.forEach(p => {
+      history.push({id:Date.now()+Math.random(), date:new Date().toLocaleDateString('pt-PT'), league:selectedLeague.name, round:selectedRound, home:p.home, away:p.away, prediction:p.prediction, score:p.score, confidence:p.confidence, result:'pending'});
+    });
+    saveHistory();
+  } catch(e) {
+    resultsDiv.innerHTML = `<div class="alert-box alert-error">Erro: ${e.message}</div>`;
+  }
+
+  btn.disabled = false; loading.style.display = 'none';
+}
+
+function renderResults(data, minConf) {
+  const div = document.getElementById('results');
+  const filtered = data.filter(p=>p.confidence>=minConf);
+  const hidden = data.length - filtered.length;
+  let html = `<div class="section-label" style="margin-top:10px;">PREVISÕES</div>`;
+  if(hidden>0) html+=`<div class="alert-box">⚡ ${hidden} jogo(s) filtrado(s) por confiança abaixo de ${minConf}%.</div>`;
+  if(!filtered.length){div.innerHTML=html+'<div class="empty-state">Nenhum jogo passou o filtro.</div>';return;}
+
+  filtered.forEach((p,i)=>{
+    const cc=p.confidence>=80?'conf-high':p.confidence>=65?'conf-mid':'conf-low';
+    const isH=p.prediction==='Vitória Casa',isD=p.prediction==='Empate',isA=p.prediction==='Vitória Fora';
+    const factors=(p.keyFactors||[]).map(f=>`<li style="margin-bottom:4px;">▸ ${f}</li>`).join('');
+    html+=`<div class="prediction-card" style="animation-delay:${i*0.08}s">
+      <div class="pred-header">
+        <div>
+          <div style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">${selectedLeague.name} · ${selectedRound}</div>
+          <div class="teams-display">${p.home} <span>vs</span> ${p.away}</div>
+        </div>
+        <div class="confidence-pill ${cc}">${p.confidence}% CONF.</div>
+      </div>
+      <div class="verdict-row">
+        <div class="verdict-box ${isH?'highlight':''}"><span class="verdict-label">CASA</span><div class="verdict-val">${p.homeWin}%</div></div>
+        <div class="verdict-box ${isD?'highlight':''}"><span class="verdict-label">EMPATE</span><div class="verdict-val">${p.draw}%</div></div>
+        <div class="verdict-box ${isA?'highlight':''}"><span class="verdict-label">FORA</span><div class="verdict-val">${p.awayWin}%</div></div>
+        <div class="verdict-box highlight" style="border-color:rgba(200,241,53,0.5)"><span class="verdict-label">PREVISÃO</span><div class="verdict-val" style="color:var(--accent);font-size:0.9rem;">${p.prediction}</div></div>
+      </div>
+      <div class="prob-bars">
+        <div class="prob-row"><span class="prob-row-label">CASA</span><div class="prob-bar-track"><div class="prob-bar-fill fill-home" style="width:${p.homeWin}%"></div></div><span class="prob-pct">${p.homeWin}%</span></div>
+        <div class="prob-row"><span class="prob-row-label">EMPATE</span><div class="prob-bar-track"><div class="prob-bar-fill fill-draw" style="width:${p.draw}%"></div></div><span class="prob-pct">${p.draw}%</span></div>
+        <div class="prob-row"><span class="prob-row-label">FORA</span><div class="prob-bar-track"><div class="prob-bar-fill fill-away" style="width:${p.awayWin}%"></div></div><span class="prob-pct">${p.awayWin}%</span></div>
+      </div>
+      <div class="verdict-row" style="margin-top:12px;margin-bottom:0;">
+        <div class="verdict-box"><span class="verdict-label">MARCADOR</span><div class="verdict-val">${p.score||'—'}</div></div>
+        <div class="verdict-box"><span class="verdict-label">AMBAS MARCAM</span><div class="verdict-val" style="color:${p.btts?'var(--success)':'var(--danger)'}">${p.btts?'SIM':'NÃO'}</div></div>
+        <div class="verdict-box"><span class="verdict-label">+2.5 GOLOS</span><div class="verdict-val" style="color:${p.over25?'var(--success)':'var(--danger)'}">${p.over25?'SIM':'NÃO'}</div></div>
+      </div>
+      ${factors?`<div class="analysis-text"><ul style="list-style:none;margin-bottom:10px;color:#ddd;font-size:0.82rem;">${factors}</ul></div>`:''}
+      <div class="analysis-text">${p.analysis||''}</div>
+    </div>`;
+  });
+  div.innerHTML = html;
+}
+
+// ── HISTORY ─────────────────────────────────────────────────────
+function saveHistory(){localStorage.setItem('scoutai_history',JSON.stringify(history));}
+function renderHistory(){
+  const list=document.getElementById('history-list');
+  if(!history.length){list.innerHTML='<div class="empty-state">Nenhuma previsão registada ainda.</div>';updateStats();return;}
+  list.innerHTML=[...history].reverse().map(h=>{
+    const tc=h.result==='correct'?'tag-correct':h.result==='wrong'?'tag-wrong':'tag-pending';
+    const tt=h.result==='correct'?'ACERTO':h.result==='wrong'?'ERRO':'PENDENTE';
+    return `<div class="history-row">
+      <div><div style="font-weight:600;">${h.home} vs ${h.away}</div>
+      <div style="font-size:0.7rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;">${h.league} · ${h.round||''} · ${h.date}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:0.78rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);">${h.prediction}</span>
+        <span class="result-tag ${tc}">${tt}</span>
+        ${h.result==='pending'?`
+          <button class="btn btn-ghost" style="font-size:0.6rem;padding:4px 8px;" onclick="markResult('${h.id}','correct')">✔</button>
+          <button class="btn btn-ghost" style="font-size:0.6rem;padding:4px 8px;color:var(--danger);border-color:var(--danger);" onclick="markResult('${h.id}','wrong')">✘</button>`:''}
+      </div></div>`;
+  }).join('');
+  updateStats();
+}
+function markResult(id,result){const idx=history.findIndex(h=>String(h.id)===String(id));if(idx>-1){history[idx].result=result;saveHistory();renderHistory();}}
+function updateStats(){
+  const t=history.length, c=history.filter(h=>h.result==='correct').length, w=history.filter(h=>h.result==='wrong').length;
+  document.getElementById('s-total').textContent=t;
+  document.getElementById('s-correct').textContent=c;
+  document.getElementById('s-wrong').textContent=w;
+  document.getElementById('s-pct').textContent=(c+w)>0?Math.round(c/(c+w)*100)+'%':'—';
+}
+function exportHistory(){const b=new Blob([JSON.stringify(history,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='scoutai_historico.json';a.click();}
+function clearHistory(){if(confirm('Apagar todo o histórico?')){history=[];saveHistory();renderHistory();}}
+</script>
+</body>
+</html>
