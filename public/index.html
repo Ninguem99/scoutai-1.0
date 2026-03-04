@@ -146,14 +146,24 @@
       </div>
     </div>
 
+    <div class="step-card" id="step-season" style="display:none;">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Escolher Temporadas</div></div>
+      <p style="font-size:0.78rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:14px;">Seleciona uma ou mais temporadas — a IA cruza os dados de todas para melhorar a previsão.</p>
+      <div class="rounds-row" id="seasons-row"></div>
+      <div id="seasons-summary" style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);display:none;"></div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" id="seasons-confirm-btn" onclick="confirmSeasons()" style="display:none;">CONFIRMAR TEMPORADAS →</button>
+      </div>
+    </div>
+
     <div class="step-card" id="step-round" style="display:none;">
-      <div class="step-header"><div class="step-num">2</div><div class="step-title">Selecionar Jornada</div></div>
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Selecionar Jornada</div></div>
       <div class="loading-line" id="loading-rounds"><span class="spinner"></span>A carregar jornadas...</div>
       <div class="rounds-row" id="rounds-row"></div>
     </div>
 
     <div class="step-card" id="step-fixtures" style="display:none;">
-      <div class="step-header"><div class="step-num">3</div><div class="step-title">Escolher Jogos</div></div>
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Escolher Jogos</div></div>
       <div class="loading-line" id="loading-fixtures"><span class="spinner"></span>A carregar jogos...</div>
       <div class="selected-summary" id="selected-summary"></div>
       <div id="fixtures-list"></div>
@@ -164,7 +174,7 @@
     </div>
 
     <div class="step-card" id="step-context" style="display:none;">
-      <div class="step-header"><div class="step-num">4</div><div class="step-title">Contexto Extra (Opcional)</div></div>
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Contexto Extra (Opcional)</div></div>
       <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;font-family:'IBM Plex Mono',monospace;">Desfalques, suspensões ou outras notas por jogo.</p>
       <div id="context-blocks"></div>
       <div class="form-row" style="margin-top:4px;">
@@ -252,7 +262,7 @@ const LEAGUES = [
   {id:179, name:'Scottish Prem.',      country:'Escócia',    flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},
 ];
 
-let selectedLeague = null, selectedRound = null;
+let selectedLeague = null, selectedSeasons = [], selectedSeason = null, selectedRound = null;
 let selectedFixtures = new Set(), allFixtures = [];
 let history = JSON.parse(localStorage.getItem('scoutai_history') || '[]');
 
@@ -343,24 +353,76 @@ function filterLeagues() {
 
 async function selectLeague(id) {
   selectedLeague = LEAGUES.find(l => l.id === id);
+  selectedSeasons = []; selectedSeason = null;
   selectedRound = null; selectedFixtures.clear(); allFixtures = [];
   renderLeagues(LEAGUES);
 
-  document.getElementById('step-round').style.display = 'block';
+  document.getElementById('step-season').style.display = 'block';
+  document.getElementById('step-round').style.display = 'none';
   document.getElementById('step-fixtures').style.display = 'none';
   document.getElementById('step-context').style.display = 'none';
   document.getElementById('analyze-section').style.display = 'none';
   document.getElementById('results').innerHTML = '';
 
+  renderSeasons();
+}
+
+function renderSeasons() {
+  const sr = document.getElementById('seasons-row');
+  const maxSeason = 2024;
+  const seasons = [];
+  for (let s = maxSeason; s >= maxSeason - 4; s--) seasons.push(s);
+
+  sr.innerHTML = seasons.map(s => {
+    const label = `${s}/${s+1}`;
+    const isSelected = selectedSeasons.includes(s);
+    return `<div class="round-chip ${isSelected?'selected':''} ${s===maxSeason?'next':''}" onclick="toggleSeason(${s})">${label}${isSelected?' ✓':''}</div>`;
+  }).join('');
+
+  // Update summary
+  const summary = document.getElementById('seasons-summary');
+  const confirmBtn = document.getElementById('seasons-confirm-btn');
+  if (selectedSeasons.length > 0) {
+    summary.style.display = 'block';
+    summary.textContent = `⚡ ${selectedSeasons.length} temporada(s) selecionada(s): ${selectedSeasons.map(s=>s+'/'+(s+1)).join(', ')}`;
+    confirmBtn.style.display = 'inline-block';
+  } else {
+    summary.style.display = 'none';
+    confirmBtn.style.display = 'none';
+  }
+}
+
+function toggleSeason(season) {
+  const idx = selectedSeasons.indexOf(season);
+  if (idx > -1) selectedSeasons.splice(idx, 1);
+  else selectedSeasons.push(season);
+  selectedSeasons.sort((a,b) => b-a);
+  renderSeasons();
+}
+
+function confirmSeasons() {
+  if (selectedSeasons.length === 0) return;
+  // Use most recent selected season for fetching fixtures
+  selectedSeason = selectedSeasons[0];
+  selectedRound = null; selectedFixtures.clear(); allFixtures = [];
+
+  document.getElementById('step-round').style.display = 'block';
+  document.getElementById('step-fixtures').style.display = 'none';
+  document.getElementById('step-context').style.display = 'none';
+  document.getElementById('analyze-section').style.display = 'none';
+
+  loadRounds();
+}
+
+async function loadRounds() {
   const lr = document.getElementById('loading-rounds');
   const rr = document.getElementById('rounds-row');
   lr.style.display = 'block'; rr.innerHTML = '';
 
   try {
-    const season = getSeason();
     const [allData, curData] = await Promise.all([
-      footballApi('/fixtures/rounds', {league:id, season}),
-      footballApi('/fixtures/rounds', {league:id, season, current:true})
+      footballApi('/fixtures/rounds', {league:selectedLeague.id, season:selectedSeason}),
+      footballApi('/fixtures/rounds', {league:selectedLeague.id, season:selectedSeason, current:true})
     ]);
     lr.style.display = 'none';
     renderRounds(allData.response || [], curData.response?.[0] || null);
@@ -371,8 +433,10 @@ async function selectLeague(id) {
 }
 
 function getSeason() {
+  // API-Football free plan: max season 2024
   const now = new Date(), m = now.getMonth()+1, y = now.getFullYear();
-  return m >= 7 ? y : y-1;
+  const s = m >= 7 ? y : y-1;
+  return Math.min(s, 2024);
 }
 
 function renderRounds(rounds, current) {
@@ -412,7 +476,7 @@ async function selectRound(round) {
   document.getElementById('selected-summary').style.display = 'none';
 
   try {
-    const data = await footballApi('/fixtures', {league:selectedLeague.id, season:getSeason(), round});
+    const data = await footballApi('/fixtures', {league:selectedLeague.id, season:selectedSeason || getSeason(), round});
     lf.style.display = 'none';
     allFixtures = data.response || [];
     renderFixtures();
@@ -465,10 +529,36 @@ function updateContextBlocks() {
       <div class="context-grid">
         <div><label>DESFALQUES CASA</label><input type="text" id="inj-home-${i}" placeholder="Lesionados, suspensos..."/></div>
         <div><label>DESFALQUES FORA</label><input type="text" id="inj-away-${i}" placeholder="Lesionados, suspensos..."/></div>
-        <div><label>CONTEXTO ESPECIAL</label><input type="text" id="motiv-${i}" placeholder="Derbi, final, descida..."/></div>
+        <div><label>TREINADOR CASA</label><input type="text" id="coach-home-${i}" placeholder="Nome do treinador..."/></div>
+        <div><label>TREINADOR FORA</label><input type="text" id="coach-away-${i}" placeholder="Nome do treinador..."/></div>
+        <div><label>TEMPERATURA (°C)</label><input type="number" id="temp-${i}" placeholder="ex: 18"/></div>
+        <div><label>CONDIÇÃO METEOROLÓGICA</label><select id="weather-${i}">
+          <option value="">Não especificar</option>
+          <option>Sol / Céu limpo</option>
+          <option>Nublado</option>
+          <option>Chuva fraca</option>
+          <option>Chuva forte</option>
+          <option>Vento forte</option>
+          <option>Neve</option>
+          <option>Calor intenso (+30°C)</option>
+        </select></div>
         <div><label>RELVADO</label><select id="field-${i}">
           <option value="">Não especificar</option>
-          <option>Bom estado</option><option>Relvado pesado (chuva)</option><option>Sintético</option>
+          <option>Bom estado</option>
+          <option>Relvado pesado (chuva)</option>
+          <option>Sintético</option>
+          <option>Degradado</option>
+        </select></div>
+        <div><label>CONTEXTO ESPECIAL</label><input type="text" id="motiv-${i}" placeholder="Derbi, final, descida..."/></div>
+        <div><label>PÚBLICO ESPERADO</label><select id="crowd-${i}">
+          <option value="">Não especificar</option>
+          <option>Estádio cheio</option>
+          <option>Meio estádio</option>
+          <option>Sem público / Portões fechados</option>
+        </select></div>
+        <div><label>ALTITUDE DO ESTÁDIO</label><select id="altitude-${i}">
+          <option value="">Normal (nível do mar)</option>
+          <option>Alta altitude (+1500m)</option>
         </select></div>
       </div>
     </div>`).join('');
@@ -491,28 +581,91 @@ async function runAnalysis() {
 
   const matchesText = selected.map((f,i)=>{
     const parts = [];
-    const injH = document.getElementById('inj-home-'+i)?.value.trim();
-    const injA = document.getElementById('inj-away-'+i)?.value.trim();
-    const mot  = document.getElementById('motiv-'+i)?.value.trim();
-    const fld  = document.getElementById('field-'+i)?.value.trim();
-    if(injH) parts.push(`Desfalques casa: ${injH}`);
-    if(injA) parts.push(`Desfalques fora: ${injA}`);
-    if(mot)  parts.push(`Contexto: ${mot}`);
-    if(fld)  parts.push(`Relvado: ${fld}`);
-    return `Jogo ${i+1}: ${f.teams.home.name} vs ${f.teams.away.name}${parts.length?' | '+parts.join(' | '):''}`;
+    const injH    = document.getElementById('inj-home-'+i)?.value.trim();
+    const injA    = document.getElementById('inj-away-'+i)?.value.trim();
+    const coachH  = document.getElementById('coach-home-'+i)?.value.trim();
+    const coachA  = document.getElementById('coach-away-'+i)?.value.trim();
+    const temp    = document.getElementById('temp-'+i)?.value.trim();
+    const weather = document.getElementById('weather-'+i)?.value.trim();
+    const fld     = document.getElementById('field-'+i)?.value.trim();
+    const mot     = document.getElementById('motiv-'+i)?.value.trim();
+    const crowd   = document.getElementById('crowd-'+i)?.value.trim();
+    const alt     = document.getElementById('altitude-'+i)?.value.trim();
+    if(injH)    parts.push(`Desfalques casa: ${injH}`);
+    if(injA)    parts.push(`Desfalques fora: ${injA}`);
+    if(coachH)  parts.push(`Treinador casa: ${coachH}`);
+    if(coachA)  parts.push(`Treinador fora: ${coachA}`);
+    if(temp)    parts.push(`Temperatura: ${temp}°C`);
+    if(weather) parts.push(`Clima: ${weather}`);
+    if(fld)     parts.push(`Relvado: ${fld}`);
+    if(mot)     parts.push(`Contexto: ${mot}`);
+    if(crowd)   parts.push(`Público: ${crowd}`);
+    if(alt)     parts.push(`Altitude: ${alt}`);
+    return `Jogo ${i+1}: ${f.teams.home.name} (CASA) vs ${f.teams.away.name} (FORA)${parts.length?' | '+parts.join(' | '):''}`;
   }).join('\n');
 
-  const systemPrompt = `És um analista especialista em futebol. Para cada jogo analisa forma recente, historial de confrontos, qualidade dos plantéis, posição na tabela, estilo de jogo, golos marcados/sofridos e fatores contextuais.
-Responde APENAS com JSON válido, sem markdown. Array de objetos:
-[{"home":"...","away":"...","prediction":"Vitória Casa"|"Empate"|"Vitória Fora","score":"X-X","confidence":75,"homeWin":55,"draw":25,"awayWin":20,"btts":true,"over25":true,"keyFactors":["...","...","..."],"analysis":"3-4 frases."}]
-homeWin+draw+awayWin=100. confidence=certeza global 0-100.`;
+  const seasons = selectedSeasons.length > 0 ? selectedSeasons : [selectedSeason];
+  const seasonStr = seasons.map(s => `${s}/${s+1}`).join(', ');
+
+  const systemPrompt = `És um analista de futebol de elite com acesso a dados históricos detalhados. Para cada jogo fornecido, faz uma análise PROFUNDA e COMPLETA considerando TODOS os seguintes fatores:
+
+DADOS ESTATÍSTICOS (cruza todas as temporadas fornecidas):
+- Golos marcados e sofridos (média por jogo, em casa vs fora)
+- Cantos a favor e contra (média por jogo)
+- Posse de bola média
+- Remates a baliza e eficácia
+- Cartões amarelos e vermelhos (disciplina)
+- Grandes penalidades (a favor e contra)
+- Faltas cometidas e sofridas
+
+FORMA E HISTORIAL:
+- Últimos 5-10 jogos de cada equipa
+- Historial de confrontos diretos nas temporadas indicadas
+- Sequências (invicto, sem marcar, sem sofrer, etc.)
+- Rendimento em casa vs fora separadamente
+
+FATORES TÁTICOS E HUMANOS:
+- Estilo de jogo (posse, contra-ataque, pressão alta, etc.)
+- Treinadores (se fornecidos) e seu estilo tático
+- Motivação: posição na tabela, objetivos da época, pressão
+- Desfalques e impacto no plantel
+
+FATORES AMBIENTAIS (se fornecidos):
+- Temperatura e condições meteorológicas
+- Condição do relvado
+- Apoio do público / estádio cheio
+- Altitude do estádio
+
+Com base em TUDO isto, responde APENAS com JSON válido, sem markdown, sem texto extra:
+[{
+  "home":"Nome Casa",
+  "away":"Nome Fora",
+  "prediction":"Vitória Casa"|"Empate"|"Vitória Fora",
+  "score":"X-X",
+  "confidence":75,
+  "homeWin":55,
+  "draw":25,
+  "awayWin":20,
+  "btts":true,
+  "over25":true,
+  "corners":"Casa 6-7 / Fora 4-5",
+  "cards":"2-3 cartões esperados",
+  "possession":"Casa 55% / Fora 45%",
+  "keyFactors":["fator 1","fator 2","fator 3","fator 4","fator 5"],
+  "homeForm":"VVDVD",
+  "awayForm":"DVVDL",
+  "h2h":"Casa venceu 3 dos últimos 5 confrontos",
+  "risk":"BAIXO"|"MÉDIO"|"ALTO",
+  "analysis":"Análise detalhada em 4-5 frases cobrindo os fatores mais decisivos."
+}]
+homeWin+draw+awayWin=100. confidence=certeza global 0-100. homeForm/awayForm: V=vitória D=empate L=derrota (mais recente à direita).`;
 
   try {
     const data = await analyzeMatches({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
+      max_tokens: 2000,
       system: systemPrompt,
-      messages: [{role:'user', content:`Campeonato: ${selectedLeague.name}\nJornada: ${selectedRound}\nTemporada: ${getSeason()}/${getSeason()+1}\n\nJogos:\n${matchesText}\n\nAnalisa todos e devolve o JSON.`}]
+      messages: [{role:'user', content:`Campeonato: ${selectedLeague.name}\nJornada: ${selectedRound}\nTemporadas a analisar: ${seasonStr}\n\nJogos:\n${matchesText}\n\nAnalisa todos os jogos cruzando dados das temporadas indicadas e devolve o JSON completo.`}]
     });
 
     const raw = data.content.map(b=>b.text||'').join('');
@@ -565,7 +718,26 @@ function renderResults(data, minConf) {
         <div class="verdict-box"><span class="verdict-label">MARCADOR</span><div class="verdict-val">${p.score||'—'}</div></div>
         <div class="verdict-box"><span class="verdict-label">AMBAS MARCAM</span><div class="verdict-val" style="color:${p.btts?'var(--success)':'var(--danger)'}">${p.btts?'SIM':'NÃO'}</div></div>
         <div class="verdict-box"><span class="verdict-label">+2.5 GOLOS</span><div class="verdict-val" style="color:${p.over25?'var(--success)':'var(--danger)'}">${p.over25?'SIM':'NÃO'}</div></div>
+        ${p.risk?`<div class="verdict-box"><span class="verdict-label">RISCO</span><div class="verdict-val" style="color:${p.risk==='BAIXO'?'var(--success)':p.risk==='MÉDIO'?'var(--warning)':'var(--danger)'}; font-size:0.9rem;">${p.risk}</div></div>`:''}
       </div>
+      ${(p.corners||p.cards||p.possession||p.h2h)?`
+      <div class="verdict-row" style="margin-top:10px;margin-bottom:0;">
+        ${p.corners?`<div class="verdict-box"><span class="verdict-label">CANTOS</span><div class="verdict-val" style="font-size:0.75rem;line-height:1.3;">${p.corners}</div></div>`:''}
+        ${p.possession?`<div class="verdict-box"><span class="verdict-label">POSSE</span><div class="verdict-val" style="font-size:0.75rem;line-height:1.3;">${p.possession}</div></div>`:''}
+        ${p.cards?`<div class="verdict-box"><span class="verdict-label">CARTÕES</span><div class="verdict-val" style="font-size:0.75rem;line-height:1.3;">${p.cards}</div></div>`:''}
+      </div>`:'' }
+      ${(p.homeForm||p.awayForm)?`
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+        ${p.homeForm?`<div style="background:var(--surface2);border-radius:3px;padding:10px 14px;flex:1;min-width:140px;">
+          <div style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">FORMA CASA</div>
+          <div style="display:flex;gap:4px;">${p.homeForm.split('').map(r=>`<span style="width:22px;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;background:${r==='V'?'rgba(74,222,128,0.2)':r==='D'?'rgba(250,204,21,0.15)':'rgba(248,113,113,0.15)'};color:${r==='V'?'var(--success)':r==='D'?'var(--warning)':'var(--danger)'}">${r}</span>`).join('')}</div>
+        </div>`:''}
+        ${p.awayForm?`<div style="background:var(--surface2);border-radius:3px;padding:10px 14px;flex:1;min-width:140px;">
+          <div style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">FORMA FORA</div>
+          <div style="display:flex;gap:4px;">${p.awayForm.split('').map(r=>`<span style="width:22px;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;background:${r==='V'?'rgba(74,222,128,0.2)':r==='D'?'rgba(250,204,21,0.15)':'rgba(248,113,113,0.15)'};color:${r==='V'?'var(--success)':r==='D'?'var(--warning)':'var(--danger)'}">${r}</span>`).join('')}</div>
+        </div>`:''}
+      </div>`:'' }
+      ${p.h2h?`<div style="background:var(--surface2);border-radius:3px;padding:10px 14px;margin-top:10px;font-size:0.8rem;color:#ccc;"><span style="font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;">H2H · </span>${p.h2h}</div>`:''}
       ${factors?`<div class="analysis-text"><ul style="list-style:none;margin-bottom:10px;color:#ddd;font-size:0.82rem;">${factors}</ul></div>`:''}
       <div class="analysis-text">${p.analysis||''}</div>
     </div>`;
