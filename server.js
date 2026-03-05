@@ -9,119 +9,145 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const FB_KEY = () => process.env.API_FOOTBALL_KEY || '';
+const FD_KEY = () => process.env.FOOTBALL_DATA_KEY || '';
 const AI_KEY = () => process.env.ANTHROPIC_KEY || '';
-const FB_BASE = 'https://v3.football.api-sports.io';
-const SEASONS = [2024, 2023, 2022];
+const FD_BASE = 'https://api.football-data.org/v4';
 
-async function fbApi(endpoint, params = {}) {
-  const url = new URL(FB_BASE + endpoint);
+// Helper
+async function fdApi(endpoint, params = {}) {
+  const url = new URL(FD_BASE + endpoint);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const r = await fetch(url.toString(), {
-    headers: { 'x-apisports-key': FB_KEY() }
+    headers: { 'X-Auth-Token': FD_KEY() }
   });
-  const data = await r.json();
-  return data.response || [];
+  if (!r.ok) throw new Error(`FD API ${r.status}: ${await r.text()}`);
+  return r.json();
 }
 
-// Search teams
+// ── Search teams ─────────────────────────────────────────────────
 app.get('/api/search-team', async (req, res) => {
   try {
     const { name } = req.query;
     if (!name || name.length < 2) return res.json([]);
-    const results = await fbApi('/teams', { search: name });
-    res.json(results.slice(0, 8).map(t => ({
-      id: t.team.id,
-      name: t.team.name,
-      logo: t.team.logo,
-      country: t.team.country
-    })));
+
+    // Search across top competitions
+    const COMPETITIONS = ['PL','PD','BL1','SA','FL1','PPL','CL','EL','BSA'];
+    const seen = new Set();
+    const results = [];
+
+    for (const comp of COMPETITIONS) {
+      try {
+        const data = await fdApi(`/competitions/${comp}/teams`);
+        for (const t of (data.teams || [])) {
+          if (!seen.has(t.id) && (
+            t.name.toLowerCase().includes(name.toLowerCase()) ||
+            t.shortName?.toLowerCase().includes(name.toLowerCase()) ||
+            t.tla?.toLowerCase().includes(name.toLowerCase())
+          )) {
+            seen.add(t.id);
+            results.push({
+              id: t.id,
+              name: t.name,
+              shortName: t.shortName || t.name,
+              logo: t.crest,
+              country: data.competition?.area?.name || '',
+              competition: data.competition?.name || comp
+            });
+          }
+        }
+      } catch(e) { /* skip competition on error */ }
+      if (results.length >= 10) break;
+    }
+
+    res.json(results.slice(0, 8));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Gather all match data
+// ── Gather match data ─────────────────────────────────────────────
 app.post('/api/gather-data', async (req, res) => {
   const { homeId, awayId, homeName, awayName } = req.body;
+
   try {
-    // Fetch in parallel where possible
-    const [homeF2024, homeF2023, homeF2022, awayF2024, awayF2023, awayF2022, h2hRaw, homeStats, awayStats] = await Promise.all([
-      fbApi('/fixtures', { team: homeId, season: 2024, last: 15 }),
-      fbApi('/fixtures', { team: homeId, season: 2023, last: 15 }),
-      fbApi('/fixtures', { team: homeId, season: 2022, last: 10 }),
-      fbApi('/fixtures', { team: awayId, season: 2024, last: 15 }),
-      fbApi('/fixtures', { team: awayId, season: 2023, last: 15 }),
-      fbApi('/fixtures', { team: awayId, season: 2022, last: 10 }),
-      fbApi('/fixtures/headtohead', { h2h: `${homeId}-${awayId}`, last: 20 }),
-      fbApi('/teams/statistics', { team: homeId, season: 2024 }),
-      fbApi('/teams/statistics', { team: awayId, season: 2024 })
+    // Fetch matches for both teams + H2H
+    const [homeMatches, awayMatches, h2hData] = await Promise.all([
+      fdApi(`/teams/${homeId}/matches`, { status: 'FINISHED', limit: 30 }),
+      fdApi(`/teams/${awayId}/matches`, { status: 'FINISHED', limit: 30 }),
+      fdApi(`/teams/${homeId}/matches`, { status: 'FINISHED', limit: 60 })
+        .catch(() => ({ matches: [] }))
     ]);
 
-    const processFixtures = (fixtures, teamId) =>
-      fixtures.map(f => {
-        const isHome = f.teams.home.id === teamId;
-        const gf = isHome ? f.goals.home : f.goals.away;
-        const ga = isHome ? f.goals.away : f.goals.home;
-        if (f.fixture.status.short !== 'FT' && f.fixture.status.short !== 'AET') return null;
+    // Also try to get team info
+    const [homeInfo, awayInfo] = await Promise.all([
+      fdApi(`/teams/${homeId}`).catch(() => ({})),
+      fdApi(`/teams/${awayId}`).catch(() => ({}))
+    ]);
+
+    const processMatches = (matches, teamId) => {
+      return (matches.matches || []).map(m => {
+        const isHome = m.homeTeam.id === teamId;
+        const gf = isHome ? m.score.fullTime.home : m.score.fullTime.away;
+        const ga = isHome ? m.score.fullTime.away : m.score.fullTime.home;
+        if (gf === null || ga === null) return null;
         return {
-          date: f.fixture.date?.slice(0, 10),
-          opponent: isHome ? f.teams.away.name : f.teams.home.name,
-          score: `${f.goals.home}-${f.goals.away}`,
+          date: m.utcDate?.slice(0, 10),
+          opponent: isHome ? m.awayTeam.name : m.homeTeam.name,
+          score: `${m.score.fullTime.home}-${m.score.fullTime.away}`,
           result: gf > ga ? 'W' : gf < ga ? 'L' : 'D',
-          goalsFor: gf, goalsAgainst: ga,
+          goalsFor: gf,
+          goalsAgainst: ga,
           venue: isHome ? 'home' : 'away',
-          league: f.league?.name,
-          season: f.league?.season
+          competition: m.competition?.name,
+          season: m.season?.startDate?.slice(0, 4)
         };
       }).filter(Boolean);
-
-    const processStats = (s) => {
-      if (!s || !s[0]) return {};
-      const st = s[0];
-      return {
-        league: st.league?.name,
-        form: st.form,
-        played: st.fixtures?.played,
-        wins: st.fixtures?.wins,
-        draws: st.fixtures?.draws,
-        loses: st.fixtures?.loses,
-        goalsFor: st.goals?.for,
-        goalsAgainst: st.goals?.against,
-        avgGoalsFor: st.goals?.for?.average,
-        avgGoalsAgainst: st.goals?.against?.average,
-        cleanSheets: st.clean_sheet,
-        failedToScore: st.failed_to_score,
-        biggestWin: st.biggest?.wins,
-        lineups: st.lineups?.slice(0, 2)
-      };
     };
 
-    const homeFixtures = processFixtures([...homeF2024, ...homeF2023, ...homeF2022], homeId);
-    const awayFixtures = processFixtures([...awayF2024, ...awayF2023, ...awayF2022], awayId);
+    const homeFixtures = processMatches(homeMatches, homeId);
+    const awayFixtures = processMatches(awayMatches, awayId);
 
-    const h2h = h2hRaw.filter(f => f.fixture.status.short === 'FT').slice(0, 15).map(f => ({
-      date: f.fixture.date?.slice(0, 10),
-      home: f.teams.home.name,
-      away: f.teams.away.name,
-      score: `${f.goals.home}-${f.goals.away}`,
-      totalGoals: (f.goals.home || 0) + (f.goals.away || 0),
-      winner: f.goals.home > f.goals.away ? f.teams.home.name : f.goals.away > f.goals.home ? f.teams.away.name : 'Empate'
-    }));
+    // H2H: matches between the two teams
+    const h2hMatches = (h2hData.matches || []).filter(m =>
+      (m.homeTeam.id === homeId && m.awayTeam.id === awayId) ||
+      (m.homeTeam.id === awayId && m.awayTeam.id === homeId)
+    ).slice(0, 15).map(m => ({
+      date: m.utcDate?.slice(0, 10),
+      home: m.homeTeam.name,
+      away: m.awayTeam.name,
+      score: `${m.score.fullTime.home}-${m.score.fullTime.away}`,
+      totalGoals: (m.score.fullTime.home || 0) + (m.score.fullTime.away || 0),
+      winner: m.score.fullTime.home > m.score.fullTime.away
+        ? m.homeTeam.name
+        : m.score.fullTime.away > m.score.fullTime.home
+          ? m.awayTeam.name : 'Empate'
+    })).filter(m => m.score !== 'null-null');
 
-    // Compute averages
-    const avg = (arr, fn) => arr.length ? (arr.reduce((s, x) => s + fn(x), 0) / arr.length).toFixed(2) : null;
-    const homeRecent = homeFixtures.slice(0, 10);
-    const awayRecent = awayFixtures.slice(0, 10);
+    const avg = (arr, fn) => arr.length
+      ? (arr.reduce((s, x) => s + fn(x), 0) / arr.length).toFixed(2)
+      : null;
+
+    const homeRecent = homeFixtures.slice(0, 15);
+    const awayRecent = awayFixtures.slice(0, 15);
     const homeHome = homeFixtures.filter(f => f.venue === 'home').slice(0, 10);
     const awayAway = awayFixtures.filter(f => f.venue === 'away').slice(0, 10);
+
+    const calcStats = (fixtures) => ({
+      wins: fixtures.filter(f => f.result === 'W').length,
+      draws: fixtures.filter(f => f.result === 'D').length,
+      losses: fixtures.filter(f => f.result === 'L').length,
+      cleanSheets: fixtures.filter(f => f.goalsAgainst === 0).length,
+      failedToScore: fixtures.filter(f => f.goalsFor === 0).length,
+      over25: fixtures.filter(f => f.goalsFor + f.goalsAgainst > 2.5).length,
+      btts: fixtures.filter(f => f.goalsFor > 0 && f.goalsAgainst > 0).length,
+    });
 
     res.json({
       success: true,
       data: {
         home: {
           name: homeName,
-          stats: processStats(homeStats),
+          info: { venue: homeInfo.venue?.name, founded: homeInfo.founded, coach: homeInfo.coach?.name },
           recentForm: homeRecent.map(f => f.result).join(''),
           recentFixtures: homeRecent,
           homeFixtures: homeHome,
@@ -129,13 +155,12 @@ app.post('/api/gather-data', async (req, res) => {
           avgGoalsAgainst: avg(homeRecent, f => f.goalsAgainst),
           avgGoalsForAtHome: avg(homeHome, f => f.goalsFor),
           avgGoalsAgainstAtHome: avg(homeHome, f => f.goalsAgainst),
-          wins: homeRecent.filter(f => f.result === 'W').length,
-          draws: homeRecent.filter(f => f.result === 'D').length,
-          losses: homeRecent.filter(f => f.result === 'L').length,
+          stats: calcStats(homeRecent),
+          homeStats: calcStats(homeHome),
         },
         away: {
           name: awayName,
-          stats: processStats(awayStats),
+          info: { venue: awayInfo.venue?.name, founded: awayInfo.founded, coach: awayInfo.coach?.name },
           recentForm: awayRecent.map(f => f.result).join(''),
           recentFixtures: awayRecent,
           awayFixtures: awayAway,
@@ -143,33 +168,32 @@ app.post('/api/gather-data', async (req, res) => {
           avgGoalsAgainst: avg(awayRecent, f => f.goalsAgainst),
           avgGoalsForAway: avg(awayAway, f => f.goalsFor),
           avgGoalsAgainstAway: avg(awayAway, f => f.goalsAgainst),
-          wins: awayRecent.filter(f => f.result === 'W').length,
-          draws: awayRecent.filter(f => f.result === 'D').length,
-          losses: awayRecent.filter(f => f.result === 'L').length,
+          stats: calcStats(awayRecent),
+          awayStats: calcStats(awayAway),
         },
-        h2h,
+        h2h: h2hMatches,
         h2hSummary: {
-          total: h2h.length,
-          homeWins: h2h.filter(f => f.winner === homeName).length,
-          awayWins: h2h.filter(f => f.winner === awayName).length,
-          draws: h2h.filter(f => f.winner === 'Empate').length,
-          avgGoals: avg(h2h, f => f.totalGoals),
-          over25: h2h.filter(f => f.totalGoals > 2.5).length,
-          btts: h2h.filter(f => {
-            const parts = f.score.split('-');
-            return parseInt(parts[0]) > 0 && parseInt(parts[1]) > 0;
+          total: h2hMatches.length,
+          homeWins: h2hMatches.filter(m => m.winner === homeName).length,
+          awayWins: h2hMatches.filter(m => m.winner === awayName).length,
+          draws: h2hMatches.filter(m => m.winner === 'Empate').length,
+          avgGoals: avg(h2hMatches, m => m.totalGoals),
+          over25: h2hMatches.filter(m => m.totalGoals > 2.5).length,
+          btts: h2hMatches.filter(m => {
+            const p = m.score.split('-');
+            return parseInt(p[0]) > 0 && parseInt(p[1]) > 0;
           }).length
         }
       }
     });
 
   } catch (err) {
-    console.error('gather-data error:', err);
+    console.error('gather-data error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Anthropic
+// ── Anthropic ────────────────────────────────────────────────────
 app.post('/api/analyze', async (req, res) => {
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -191,4 +215,4 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`✅ ScoutAI v3.0 — porta ${PORT}`));
+app.listen(PORT, () => console.log(`✅ ScoutAI v3.0 (football-data.org) — porta ${PORT}`));
