@@ -155,7 +155,7 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
     <div class="card">
       <div class="card-title"><span class="num">⚙</span> Chaves de API</div>
       <div style="max-width:420px;display:flex;flex-direction:column;gap:14px;">
-        <div><label>API-FOOTBALL KEY</label><input type="password" id="fb-key" placeholder="A tua chave..."/></div>
+        <div><label>NINJAS API KEY</label><input type="password" id="fb-key" placeholder="A tua chave..."/></div>
         <div><label>ANTHROPIC KEY</label><input type="password" id="ai-key" placeholder="sk-ant-..."/></div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="saveKeys()">GUARDAR</button>
@@ -170,9 +170,9 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
 let matchCount=0, matches={}, history=JSON.parse(localStorage.getItem('scoutai_v3')||'[]'), searchTimers={};
 const MAX=10;
 
-window.onload=()=>{addMatch();addMatch();renderHistory();const fk=localStorage.getItem('scoutai_fbkey'),ak=localStorage.getItem('scoutai_aikey');if(fk)document.getElementById('fb-key').value=fk;if(ak)document.getElementById('ai-key').value=ak;};
+window.onload=()=>{addMatch();addMatch();renderHistory();const fk=localStorage.getItem('scoutai_ninjas_key'),ak=localStorage.getItem('scoutai_aikey');if(fk)document.getElementById('fb-key').value=fk;if(ak)document.getElementById('ai-key').value=ak;};
 
-function saveKeys(){const fk=document.getElementById('fb-key').value.trim(),ak=document.getElementById('ai-key').value.trim();if(fk)localStorage.setItem('scoutai_fbkey',fk);if(ak)localStorage.setItem('scoutai_aikey',ak);document.getElementById('conn-status').innerHTML='<span style="color:var(--success)">✔ Guardado.</span>';}
+function saveKeys(){const fk=document.getElementById('fb-key').value.trim(),ak=document.getElementById('ai-key').value.trim();if(fk)localStorage.setItem('scoutai_ninjas_key',fk);if(ak)localStorage.setItem('scoutai_aikey',ak);document.getElementById('conn-status').innerHTML='<span style="color:var(--success)">✔ Guardado.</span>';}
 
 async function testConn(){document.getElementById('conn-status').innerHTML='<span class="spinner"></span>A testar...';try{const r=await fetch('/api/search-team?name=Arsenal'),d=await r.json();document.getElementById('conn-status').innerHTML=d.length>0?'<span style="color:var(--success)">✔ Ligação OK</span>':'<span style="color:var(--warning)">⚠ Sem resultados — verifica a key</span>';}catch(e){document.getElementById('conn-status').innerHTML=`<span style="color:var(--danger)">✘ ${e.message}</span>`;}}
 
