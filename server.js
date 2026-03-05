@@ -9,74 +9,35 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const FD_KEY = () => process.env.FOOTBALL_DATA_KEY || '';
+const NINJAS_KEY = () => process.env.NINJAS_KEY || '';
 const AI_KEY = () => process.env.ANTHROPIC_KEY || '';
-const FD_BASE = 'https://api.football-data.org/v4';
+const NINJAS_BASE = 'https://api.api-ninjas.com/v1';
 
-// Cache to avoid repeated calls
-const teamsCache = { data: null, ts: 0 };
-
-async function fdApi(endpoint, params = {}) {
-  const url = new URL(FD_BASE + endpoint);
+async function ninjasApi(endpoint, params = {}) {
+  const url = new URL(NINJAS_BASE + endpoint);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const r = await fetch(url.toString(), {
-    headers: { 'X-Auth-Token': FD_KEY() }
+    headers: { 'X-Api-Key': NINJAS_KEY() }
   });
-  if (!r.ok) throw new Error(`API ${r.status}`);
+  if (!r.ok) throw new Error(`API ${r.status}: ${await r.text()}`);
   return r.json();
 }
 
-// Load all teams once and cache for 1 hour
-async function getAllTeams() {
-  const now = Date.now();
-  if (teamsCache.data && (now - teamsCache.ts) < 3600000) return teamsCache.data;
-
-  const COMPETITIONS = ['PL','PD','BL1','SA','FL1','PPL','CL','EL','BSA'];
-  const teams = [];
-  const seen = new Set();
-
-  // Fetch competitions in parallel — all at once (9 calls, within limit)
-  const results = await Promise.allSettled(
-    COMPETITIONS.map(c => fdApi(`/competitions/${c}/teams`))
-  );
-
-  results.forEach(r => {
-    if (r.status !== 'fulfilled') return;
-    const comp = r.value;
-    (comp.teams || []).forEach(t => {
-      if (!seen.has(t.id)) {
-        seen.add(t.id);
-        teams.push({
-          id: t.id,
-          name: t.name,
-          shortName: t.shortName || t.name,
-          logo: t.crest,
-          country: comp.competition?.area?.name || '',
-          competition: comp.competition?.name || ''
-        });
-      }
-    });
-  });
-
-  teamsCache.data = teams;
-  teamsCache.ts = now;
-  return teams;
-}
-
-// ── Search teams (instant, from cache) ───────────────────────────
+// ── Search teams ──────────────────────────────────────────────────
 app.get('/api/search-team', async (req, res) => {
   try {
     const { name } = req.query;
     if (!name || name.length < 2) return res.json([]);
-
-    const all = await getAllTeams();
-    const q = name.toLowerCase();
-    const matches = all.filter(t =>
-      t.name.toLowerCase().includes(q) ||
-      t.shortName.toLowerCase().includes(q)
-    ).slice(0, 8);
-
-    res.json(matches);
+    const data = await ninjasApi('/teams', { name });
+    const results = (Array.isArray(data) ? data : []).slice(0, 8).map(t => ({
+      id: t.id || t.name,
+      name: t.name,
+      shortName: t.name,
+      logo: null,
+      country: t.country || '',
+      competition: t.league || ''
+    }));
+    res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -87,45 +48,46 @@ app.post('/api/gather-data', async (req, res) => {
   const { homeId, awayId, homeName, awayName } = req.body;
 
   try {
-    const [homeMatches, awayMatches, homeInfo, awayInfo] = await Promise.all([
-      fdApi(`/teams/${homeId}/matches`, { status: 'FINISHED', limit: 30 }),
-      fdApi(`/teams/${awayId}/matches`, { status: 'FINISHED', limit: 30 }),
-      fdApi(`/teams/${homeId}`).catch(() => ({})),
-      fdApi(`/teams/${awayId}`).catch(() => ({}))
+    // Get games for each team
+    const [homeGames, awayGames] = await Promise.all([
+      ninjasApi('/games', { team: homeName, limit: 30 }).catch(() => []),
+      ninjasApi('/games', { team: awayName, limit: 30 }).catch(() => [])
     ]);
 
-    const processMatches = (data, teamId) =>
-      (data.matches || []).map(m => {
-        const isHome = m.homeTeam.id === teamId;
-        const gf = isHome ? m.score.fullTime.home : m.score.fullTime.away;
-        const ga = isHome ? m.score.fullTime.away : m.score.fullTime.home;
-        if (gf === null || ga === null) return null;
+    const processGames = (games, teamName) => {
+      return (Array.isArray(games) ? games : []).map(g => {
+        const isHome = g.home_team?.toLowerCase() === teamName.toLowerCase();
+        const gf = isHome ? parseInt(g.home_score) : parseInt(g.away_score);
+        const ga = isHome ? parseInt(g.away_score) : parseInt(g.home_score);
+        if (isNaN(gf) || isNaN(ga)) return null;
         return {
-          date: m.utcDate?.slice(0, 10),
-          opponent: isHome ? m.awayTeam.name : m.homeTeam.name,
-          score: `${m.score.fullTime.home}-${m.score.fullTime.away}`,
+          date: g.date,
+          opponent: isHome ? g.away_team : g.home_team,
+          score: `${g.home_score}-${g.away_score}`,
           result: gf > ga ? 'W' : gf < ga ? 'L' : 'D',
           goalsFor: gf, goalsAgainst: ga,
           venue: isHome ? 'home' : 'away',
-          competition: m.competition?.name
+          competition: g.league || ''
         };
       }).filter(Boolean);
+    };
 
-    const homeFixtures = processMatches(homeMatches, homeId);
-    const awayFixtures = processMatches(awayMatches, awayId);
+    const homeFixtures = processGames(homeGames, homeName);
+    const awayFixtures = processGames(awayGames, awayName);
 
-    // H2H from combined matches
-    const allMatches = [...(homeMatches.matches || []), ...(awayMatches.matches || [])];
-    const h2hMatches = allMatches.filter(m =>
-      (m.homeTeam.id === homeId && m.awayTeam.id === awayId) ||
-      (m.homeTeam.id === awayId && m.awayTeam.id === homeId)
-    ).slice(0, 12).map(m => ({
-      date: m.utcDate?.slice(0, 10),
-      home: m.homeTeam.name, away: m.awayTeam.name,
-      score: `${m.score.fullTime.home}-${m.score.fullTime.away}`,
-      totalGoals: (m.score.fullTime.home || 0) + (m.score.fullTime.away || 0),
-      winner: m.score.fullTime.home > m.score.fullTime.away ? m.homeTeam.name
-            : m.score.fullTime.away > m.score.fullTime.home ? m.awayTeam.name : 'Empate'
+    // H2H from combined
+    const allGames = [...(Array.isArray(homeGames) ? homeGames : []), ...(Array.isArray(awayGames) ? awayGames : [])];
+    const h2hMatches = allGames.filter(g => {
+      const ht = g.home_team?.toLowerCase(), at = g.away_team?.toLowerCase();
+      const hn = homeName.toLowerCase(), an = awayName.toLowerCase();
+      return (ht === hn && at === an) || (ht === an && at === hn);
+    }).slice(0, 12).map(g => ({
+      date: g.date,
+      home: g.home_team, away: g.away_team,
+      score: `${g.home_score}-${g.away_score}`,
+      totalGoals: (parseInt(g.home_score) || 0) + (parseInt(g.away_score) || 0),
+      winner: parseInt(g.home_score) > parseInt(g.away_score) ? g.home_team
+            : parseInt(g.away_score) > parseInt(g.home_score) ? g.away_team : 'Empate'
     }));
 
     const avg = (arr, fn) => arr.length ? (arr.reduce((s, x) => s + fn(x), 0) / arr.length).toFixed(2) : 'N/A';
@@ -149,8 +111,6 @@ app.post('/api/gather-data', async (req, res) => {
       data: {
         home: {
           name: homeName,
-          coach: homeInfo.coach?.name || null,
-          venue: homeInfo.venue?.name || null,
           recentForm: homeRecent.map(f => f.result).join(''),
           recentFixtures: homeRecent,
           homeFixtures: homeHome,
@@ -163,8 +123,6 @@ app.post('/api/gather-data', async (req, res) => {
         },
         away: {
           name: awayName,
-          coach: awayInfo.coach?.name || null,
-          venue: awayInfo.venue?.name || null,
           recentForm: awayRecent.map(f => f.result).join(''),
           recentFixtures: awayRecent,
           awayFixtures: awayAway,
@@ -211,14 +169,8 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
-// Warmup cache on start
-setTimeout(() => {
-  console.log('🔄 A carregar equipas em cache...');
-  getAllTeams().then(t => console.log(`✅ ${t.length} equipas em cache`)).catch(console.error);
-}, 2000);
-
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`✅ ScoutAI v3.0 — porta ${PORT}`));
+app.listen(PORT, () => console.log(`✅ ScoutAI v3.0 (API-Ninjas) — porta ${PORT}`));
