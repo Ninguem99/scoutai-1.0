@@ -19,42 +19,42 @@ main{max-width:1060px;margin:0 auto;padding:32px 18px;}
 .tab-panel{display:none;}.tab-panel.active{display:block;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:22px;margin-bottom:16px;}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
-.card-title .num{color:var(--accent);background:rgba(200,241,53,0.08);border:1px solid rgba(200,241,53,0.3);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:1rem;}
+.card-title .num{color:var(--accent);background:rgba(200,241,53,0.08);border:1px solid rgba(200,241,53,0.3);width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:3px;}
 .match-row{display:grid;grid-template-columns:1fr 40px 1fr 36px;gap:10px;align-items:start;margin-bottom:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;}
-.match-row.has-teams{border-color:rgba(200,241,53,0.25);}
+.match-row.has-teams{border-color:rgba(200,241,53,0.3);}
 .vs-badge{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--muted);text-align:center;padding-top:24px;}
-.remove-btn{background:none;border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:3px;cursor:pointer;font-size:0.9rem;transition:all 0.15s;display:flex;align-items:center;justify-content:center;margin-top:22px;}
+.remove-btn{background:none;border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:3px;cursor:pointer;font-size:0.85rem;transition:all 0.15s;display:flex;align-items:center;justify-content:center;margin-top:22px;}
 .remove-btn:hover{border-color:var(--danger);color:var(--danger);}
-.team-search-wrap{position:relative;}
+.team-wrap{position:relative;}
 .slabel{font-size:0.65rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-bottom:5px;letter-spacing:1px;display:block;}
 .team-input{width:100%;background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:10px 14px;font-family:'IBM Plex Sans',sans-serif;font-size:0.88rem;border-radius:3px;outline:none;transition:border-color 0.2s;}
 .team-input:focus{border-color:var(--accent);}
-.team-selected{display:flex;align-items:center;gap:8px;background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.3);border-radius:3px;padding:8px 12px;cursor:pointer;}
-.team-selected img{width:22px;height:22px;object-fit:contain;}
+.team-selected{display:flex;align-items:center;gap:8px;background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.3);border-radius:3px;padding:9px 12px;cursor:pointer;}
 .team-selected .tname{font-size:0.88rem;font-weight:600;flex:1;}
-.team-selected .tclear{color:var(--muted);font-size:0.8rem;}
-.dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;z-index:100;max-height:220px;overflow-y:auto;display:none;}
+.team-selected .tsub{font-size:0.65rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.team-selected .tclear{color:var(--muted);font-size:0.8rem;margin-left:auto;}
+.dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;z-index:100;max-height:240px;overflow-y:auto;display:none;}
 .dropdown.open{display:block;}
-.dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.1s;font-size:0.85rem;}
-.dropdown-item:hover{background:var(--surface3);}
-.dropdown-item img{width:22px;height:22px;object-fit:contain;}
-.d-country{font-size:0.68rem;color:var(--muted);margin-left:auto;}
-.dropdown-loading{padding:10px 14px;font-size:0.78rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.1s;font-size:0.85rem;border-bottom:1px solid var(--border);}
+.dd-item:last-child{border-bottom:none;}
+.dd-item:hover{background:var(--surface3);}
+.dd-item .d-sub{font-size:0.65rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-left:auto;}
+.dd-msg{padding:12px 14px;font-size:0.78rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
 .btn{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;letter-spacing:2px;padding:10px 18px;border-radius:3px;cursor:pointer;transition:all 0.2s;border:none;text-transform:uppercase;}
 .btn-ghost{background:none;border:1px solid var(--border);color:var(--muted);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
 .btn-primary{background:var(--accent);color:#000;font-weight:700;}.btn-primary:hover{background:#d4f53f;transform:translateY(-1px);}.btn-primary:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px;}
 label{font-size:0.68rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:1px;display:block;margin-bottom:5px;}
 input,select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:0.88rem;border-radius:3px;outline:none;transition:border-color 0.2s;}
-input:focus,select:focus{border-color:var(--accent);}select option{background:#1a1a1a;}
+input:focus,select:focus{border-color:var(--accent);}
 .progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:20px;margin:18px 0;display:none;}
-.progress-title{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);letter-spacing:2px;margin-bottom:14px;}
-.progress-msg{font-size:0.8rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-bottom:10px;}
+.progress-title{font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--accent);letter-spacing:2px;margin-bottom:10px;}
+.progress-msg{font-size:0.8rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);}
 .progress-bar-outer{height:3px;background:var(--border);border-radius:2px;margin-top:14px;overflow:hidden;}
 .progress-bar-inner{height:100%;background:var(--accent);border-radius:2px;transition:width 0.4s ease;}
 .pred-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:20px;animation:fadeUp 0.3s ease both;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.pred-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.pred-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:rgba(200,241,53,0.02);}
 .pred-teams{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;}
 .pred-teams span{color:var(--accent);margin:0 10px;}
 .pred-meta{font-size:0.62rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;margin-bottom:4px;}
@@ -89,7 +89,6 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
 .section-label{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
 .section-label::after{content:'';flex:1;height:1px;background:var(--border);}
 .alert{border-radius:4px;padding:11px 15px;font-size:0.78rem;font-family:'IBM Plex Mono',monospace;margin-bottom:14px;}
-.alert-ok{background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);color:var(--accent);}
 .alert-err{background:rgba(255,77,77,0.06);border:1px solid rgba(255,77,77,0.25);color:var(--danger);}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -101,13 +100,15 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
 .tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:3px 9px;border-radius:2px;letter-spacing:1px;}
 .tag-c{background:rgba(74,222,128,0.12);color:var(--success);}.tag-w{background:rgba(248,113,113,0.1);color:var(--danger);}.tag-p{background:rgba(100,100,100,0.15);color:var(--muted);}
 .empty{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.78rem;padding:28px 0;text-align:center;}
+.info-box{background:rgba(200,241,53,0.04);border:1px solid rgba(200,241,53,0.15);border-radius:4px;padding:12px 16px;font-size:0.78rem;font-family:'IBM Plex Mono',monospace;color:#999;margin-bottom:18px;line-height:1.6;}
+.info-box span{color:var(--accent);}
 @media(max-width:620px){.match-row{grid-template-columns:1fr 28px 1fr 28px;}.stat-grid{grid-template-columns:repeat(2,1fr);}.pred-teams{font-size:1.1rem;}}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">Scout<span>AI</span></div>
-  <div class="badge">V3.0 — AUTO DATA</div>
+  <div class="badge">V3.0 — IA POWERED</div>
 </header>
 <main>
   <div class="tabs">
@@ -119,21 +120,28 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
   <div class="tab-panel active" id="tab-analyze">
     <div class="card">
       <div class="card-title"><span class="num">1</span> Selecionar Jogos (até 10)</div>
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:18px;font-family:'IBM Plex Mono',monospace;">Pesquisa e seleciona as equipas. O bot recolhe todos os dados automaticamente.</p>
+      <div class="info-box">
+        <span>⚡ Powered by Claude AI</span> — Pesquisa qualquer equipa do mundo. A IA analisa com dados históricos até 2024/25: forma, golos, H2H, cantos, cartões e muito mais.
+      </div>
       <div id="matches-container"></div>
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="addMatch()" id="add-match-btn">+ ADICIONAR JOGO</button>
+        <button class="btn btn-ghost" onclick="addMatch()" id="add-btn">+ ADICIONAR JOGO</button>
       </div>
     </div>
+
     <div class="progress-wrap" id="progress-wrap">
-      <div class="progress-title">A RECOLHER DADOS...</div>
+      <div class="progress-title">A PROCESSAR...</div>
       <div class="progress-msg" id="progress-msg"></div>
       <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress-bar" style="width:0%"></div></div>
     </div>
-    <div style="text-align:center;margin:20px 0;" id="analyze-section" style="display:none;">
-      <button class="btn btn-primary" id="analyze-btn" onclick="startAnalysis()" style="padding:14px 44px;font-size:0.85rem;">ANALISAR JOGOS SELECIONADOS</button>
-      <div id="analyze-note" style="margin-top:10px;font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);"></div>
+
+    <div style="text-align:center;margin:20px 0;display:none;" id="analyze-section">
+      <button class="btn btn-primary" id="analyze-btn" onclick="startAnalysis()" style="padding:14px 48px;font-size:0.88rem;">
+        ANALISAR JOGOS SELECIONADOS
+      </button>
+      <div id="analyze-note" style="margin-top:8px;font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);"></div>
     </div>
+
     <div id="results"></div>
   </div>
 
@@ -153,10 +161,10 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
 
   <div class="tab-panel" id="tab-settings">
     <div class="card">
-      <div class="card-title"><span class="num">⚙</span> Chaves de API</div>
+      <div class="card-title"><span class="num">⚙</span> Configurações</div>
       <div style="max-width:420px;display:flex;flex-direction:column;gap:14px;">
-        <div><label>NINJAS API KEY</label><input type="password" id="fb-key" placeholder="A tua chave..."/></div>
-        <div><label>ANTHROPIC KEY</label><input type="password" id="ai-key" placeholder="sk-ant-..."/></div>
+        <div class="info-box">Esta versão usa apenas o <span>Claude AI</span> como fonte de dados. Só precisas da chave Anthropic.</div>
+        <div><label>ANTHROPIC API KEY</label><input type="password" id="ai-key" placeholder="sk-ant-..."/></div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="saveKeys()">GUARDAR</button>
           <button class="btn btn-ghost" onclick="testConn()">TESTAR LIGAÇÃO</button>
@@ -166,107 +174,223 @@ input:focus,select:focus{border-color:var(--accent);}select option{background:#1
     </div>
   </div>
 </main>
+
 <script>
 let matchCount=0, matches={}, history=JSON.parse(localStorage.getItem('scoutai_v3')||'[]'), searchTimers={};
 const MAX=10;
 
-window.onload=()=>{addMatch();addMatch();renderHistory();const fk=localStorage.getItem('scoutai_ninjas_key'),ak=localStorage.getItem('scoutai_aikey');if(fk)document.getElementById('fb-key').value=fk;if(ak)document.getElementById('ai-key').value=ak;};
+window.onload=()=>{
+  addMatch();addMatch();
+  renderHistory();
+  const ak=localStorage.getItem('scoutai_aikey');
+  if(ak)document.getElementById('ai-key').value=ak;
+};
 
-function saveKeys(){const fk=document.getElementById('fb-key').value.trim(),ak=document.getElementById('ai-key').value.trim();if(fk)localStorage.setItem('scoutai_ninjas_key',fk);if(ak)localStorage.setItem('scoutai_aikey',ak);document.getElementById('conn-status').innerHTML='<span style="color:var(--success)">✔ Guardado.</span>';}
+function saveKeys(){
+  const ak=document.getElementById('ai-key').value.trim();
+  if(ak)localStorage.setItem('scoutai_aikey',ak);
+  document.getElementById('conn-status').innerHTML='<span style="color:var(--success)">✔ Guardado.</span>';
+}
 
-async function testConn(){document.getElementById('conn-status').innerHTML='<span class="spinner"></span>A testar...';try{const r=await fetch('/api/search-team?name=Arsenal'),d=await r.json();document.getElementById('conn-status').innerHTML=d.length>0?'<span style="color:var(--success)">✔ Ligação OK</span>':'<span style="color:var(--warning)">⚠ Sem resultados — verifica a key</span>';}catch(e){document.getElementById('conn-status').innerHTML=`<span style="color:var(--danger)">✘ ${e.message}</span>`;}}
+async function testConn(){
+  document.getElementById('conn-status').innerHTML='<span class="spinner"></span>A testar...';
+  try{
+    const r=await fetch('/api/search-team?name=Arsenal');
+    const d=await r.json();
+    document.getElementById('conn-status').innerHTML=d.length>0
+      ?`<span style="color:var(--success)">✔ Ligação OK — Claude a responder</span>`
+      :'<span style="color:var(--warning)">⚠ Sem resultados — verifica a Anthropic key no Render</span>';
+  }catch(e){
+    document.getElementById('conn-status').innerHTML=`<span style="color:var(--danger)">✘ ${e.message}</span>`;
+  }
+}
 
-function switchTab(name,btn){document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+name).classList.add('active');btn.classList.add('active');if(name==='history')renderHistory();}
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='history')renderHistory();
+}
 
-function addMatch(){if(Object.keys(matches).length>=MAX)return;matchCount++;const id=matchCount;matches[id]={home:null,away:null};const c=document.getElementById('matches-container'),div=document.createElement('div');div.className='match-row';div.id=`mr-${id}`;div.innerHTML=`<div class="team-search-wrap" id="wh-${id}"><span class="slabel">CASA</span><input class="team-input" id="ih-${id}" placeholder="Pesquisar equipa..." oninput="onInput(${id},'h')" onfocus="onFocus(${id},'h')" autocomplete="off"/><div class="dropdown" id="dh-${id}"></div></div><div class="vs-badge">VS</div><div class="team-search-wrap" id="wa-${id}"><span class="slabel">FORA</span><input class="team-input" id="ia-${id}" placeholder="Pesquisar equipa..." oninput="onInput(${id},'a')" onfocus="onFocus(${id},'a')" autocomplete="off"/><div class="dropdown" id="da-${id}"></div></div><button class="remove-btn" onclick="removeMatch(${id})">✕</button>`;c.appendChild(div);document.addEventListener('click',e=>{if(!div.contains(e.target)){closeDd(id,'h');closeDd(id,'a');}});updateAddBtn();updateAnalyzeBtn();}
+function addMatch(){
+  if(Object.keys(matches).length>=MAX)return;
+  matchCount++;
+  const id=matchCount;
+  matches[id]={home:null,away:null};
+  const c=document.getElementById('matches-container');
+  const div=document.createElement('div');
+  div.className='match-row';div.id=`mr-${id}`;
+  div.innerHTML=`
+    <div class="team-wrap" id="wh-${id}">
+      <span class="slabel">CASA</span>
+      <input class="team-input" id="ih-${id}" placeholder="Ex: Benfica, Arsenal, Real Madrid..." oninput="onInput(${id},'h')" onfocus="onFocus(${id},'h')" autocomplete="off"/>
+      <div class="dropdown" id="dh-${id}"></div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="team-wrap" id="wa-${id}">
+      <span class="slabel">FORA</span>
+      <input class="team-input" id="ia-${id}" placeholder="Ex: Porto, Chelsea, Barcelona..." oninput="onInput(${id},'a')" onfocus="onFocus(${id},'a')" autocomplete="off"/>
+      <div class="dropdown" id="da-${id}"></div>
+    </div>
+    <button class="remove-btn" onclick="removeMatch(${id})">✕</button>`;
+  c.appendChild(div);
+  document.addEventListener('click',e=>{if(!div.contains(e.target)){closeDd(id,'h');closeDd(id,'a');}});
+  updateAddBtn();updateAnalyzeBtn();
+}
 
 function removeMatch(id){delete matches[id];document.getElementById(`mr-${id}`)?.remove();updateAddBtn();updateAnalyzeBtn();}
-function updateAddBtn(){const n=Object.keys(matches).length,btn=document.getElementById('add-match-btn');btn.disabled=n>=MAX;btn.textContent=n>=MAX?`MÁXIMO ${MAX} JOGOS`:'+ ADICIONAR JOGO';}
-function updateAnalyzeBtn(){const n=Object.values(matches).filter(m=>m.home&&m.away).length,s=document.getElementById('analyze-section');s.style.display=n>0?'block':'none';if(n>0)document.getElementById('analyze-note').textContent=`${n} jogo(s) prontos`;}
+function updateAddBtn(){const n=Object.keys(matches).length,btn=document.getElementById('add-btn');btn.disabled=n>=MAX;btn.textContent=n>=MAX?`MÁXIMO ${MAX} JOGOS`:'+ ADICIONAR JOGO';}
+function updateAnalyzeBtn(){const n=Object.values(matches).filter(m=>m.home&&m.away).length,s=document.getElementById('analyze-section');s.style.display=n>0?'block':'none';if(n>0)document.getElementById('analyze-note').textContent=`${n} jogo(s) pronto(s) para análise`;}
 
-function onInput(id,side){const val=document.getElementById(`i${side}-${id}`).value.trim();clearTimeout(searchTimers[`${id}${side}`]);if(val.length<2){closeDd(id,side);return;}showLoading(id,side);searchTimers[`${id}${side}`]=setTimeout(()=>doSearch(id,side,val),400);}
+function onInput(id,side){
+  const val=document.getElementById(`i${side}-${id}`).value.trim();
+  clearTimeout(searchTimers[`${id}${side}`]);
+  if(val.length<2){closeDd(id,side);return;}
+  showDdLoading(id,side);
+  searchTimers[`${id}${side}`]=setTimeout(()=>doSearch(id,side,val),500);
+}
 function onFocus(id,side){const val=document.getElementById(`i${side}-${id}`).value.trim();if(val.length>=2)doSearch(id,side,val);}
-function showLoading(id,side){const dd=document.getElementById(`d${side}-${id}`);dd.innerHTML='<div class="dropdown-loading"><span class="spinner"></span>A pesquisar...</div>';dd.classList.add('open');}
+function showDdLoading(id,side){const dd=document.getElementById(`d${side}-${id}`);dd.innerHTML='<div class="dd-msg"><span class="spinner"></span>A pesquisar...</div>';dd.classList.add('open');}
 function closeDd(id,side){document.getElementById(`d${side}-${id}`)?.classList.remove('open');}
 
-async function doSearch(id,side,q){try{const r=await fetch(`/api/search-team?name=${encodeURIComponent(q)}`),teams=await r.json();const dd=document.getElementById(`d${side}-${id}`);if(!teams.length){dd.innerHTML='<div class="dropdown-loading">Sem resultados.</div>';dd.classList.add('open');return;}dd.innerHTML=teams.map(t=>`<div class="dropdown-item" onclick="selectTeam(${id},'${side}',${t.id},'${t.name.replace(/'/g,"\\'")}','${t.logo}')"><img src="${t.logo}" onerror="this.style.display='none'"/><span>${t.name}</span><span class="d-country">${t.country||''}</span></div>`).join('');dd.classList.add('open');}catch(e){const dd=document.getElementById(`d${side}-${id}`);dd.innerHTML=`<div class="dropdown-loading" style="color:var(--danger)">Erro: ${e.message}</div>`;}}
+async function doSearch(id,side,q){
+  try{
+    const r=await fetch(`/api/search-team?name=${encodeURIComponent(q)}`);
+    const teams=await r.json();
+    const dd=document.getElementById(`d${side}-${id}`);
+    if(!teams.length){dd.innerHTML='<div class="dd-msg">Sem resultados. Tenta outro nome.</div>';dd.classList.add('open');return;}
+    dd.innerHTML=teams.map(t=>`
+      <div class="dd-item" onclick="selectTeam(${id},'${side}','${String(t.id).replace(/'/g,"\\'")}','${t.name.replace(/'/g,"\\'")}','${(t.competition||'').replace(/'/g,"\\'")}','${(t.country||'').replace(/'/g,"\\'")}')">
+        <span style="font-size:1rem;">⚽</span>
+        <span>${t.name}</span>
+        <span class="d-sub">${t.competition||t.country||''}</span>
+      </div>`).join('');
+    dd.classList.add('open');
+  }catch(e){
+    const dd=document.getElementById(`d${side}-${id}`);
+    dd.innerHTML=`<div class="dd-msg" style="color:var(--danger)">Erro: ${e.message}</div>`;
+  }
+}
 
-function selectTeam(id,side,teamId,teamName,logo){matches[id][side]={id:teamId,name:teamName,logo};const wrap=document.getElementById(`w${side==='h'?'h':'a'}-${id}`),lbl=side==='h'?'CASA':'FORA';wrap.innerHTML=`<span class="slabel">${lbl}</span><div class="team-selected" onclick="clearTeam(${id},'${side}')"><img src="${logo}" onerror="this.style.display='none'" style="width:22px;height:22px;object-fit:contain;"/><span class="tname">${teamName}</span><span class="tclear">✕</span></div>`;if(matches[id].home&&matches[id].away)document.getElementById(`mr-${id}`).classList.add('has-teams');updateAnalyzeBtn();}
+function selectTeam(id,side,teamId,teamName,competition,country){
+  matches[id][side]={id:teamId,name:teamName,competition,country};
+  const wrap=document.getElementById(`w${side}-${id}`);
+  const lbl=side==='h'?'CASA':'FORA';
+  wrap.innerHTML=`
+    <span class="slabel">${lbl}</span>
+    <div class="team-selected" onclick="clearTeam(${id},'${side}')">
+      <span style="font-size:1.1rem;">⚽</span>
+      <div style="flex:1;overflow:hidden;">
+        <div class="tname">${teamName}</div>
+        <div class="tsub">${competition||country||''}</div>
+      </div>
+      <span class="tclear">✕</span>
+    </div>`;
+  if(matches[id].home&&matches[id].away)document.getElementById(`mr-${id}`).classList.add('has-teams');
+  updateAnalyzeBtn();
+}
 
-function clearTeam(id,side){matches[id][side]=null;const wrap=document.getElementById(`w${side==='h'?'h':'a'}-${id}`),lbl=side==='h'?'CASA':'FORA';wrap.innerHTML=`<span class="slabel">${lbl}</span><input class="team-input" id="i${side}-${id}" placeholder="Pesquisar equipa..." oninput="onInput(${id},'${side}')" onfocus="onFocus(${id},'${side}')" autocomplete="off"/><div class="dropdown" id="d${side}-${id}"></div>`;document.getElementById(`mr-${id}`)?.classList.remove('has-teams');updateAnalyzeBtn();}
+function clearTeam(id,side){
+  matches[id][side]=null;
+  const wrap=document.getElementById(`w${side}-${id}`);
+  const lbl=side==='h'?'CASA':'FORA';
+  wrap.innerHTML=`
+    <span class="slabel">${lbl}</span>
+    <input class="team-input" id="i${side}-${id}" placeholder="Ex: Benfica, Arsenal..." oninput="onInput(${id},'${side}')" onfocus="onFocus(${id},'${side}')" autocomplete="off"/>
+    <div class="dropdown" id="d${side}-${id}"></div>`;
+  document.getElementById(`mr-${id}`)?.classList.remove('has-teams');
+  updateAnalyzeBtn();
+}
 
 async function startAnalysis(){
   const ready=Object.entries(matches).filter(([_,m])=>m.home&&m.away).map(([id,m])=>({id,...m}));
   if(!ready.length)return;
-  const btn=document.getElementById('analyze-btn'),pw=document.getElementById('progress-wrap'),res=document.getElementById('results');
+
+  const btn=document.getElementById('analyze-btn');
+  const pw=document.getElementById('progress-wrap');
+  const res=document.getElementById('results');
+
   btn.disabled=true;pw.style.display='block';res.innerHTML='';
-  const allData=[];
-  for(let i=0;i<ready.length;i++){
-    const m=ready[i];
-    setProgress(i,ready.length,`A recolher dados: ${m.home.name} vs ${m.away.name}...`);
-    try{const r=await fetch('/api/gather-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({homeId:m.home.id,awayId:m.away.id,homeName:m.home.name,awayName:m.away.name})});const d=await r.json();allData.push({match:m,data:d.success?d.data:null,error:d.error});}
-    catch(e){allData.push({match:m,data:null,error:e.message});}
-  }
-  setProgress(ready.length,ready.length,'A gerar previsões com IA...');
-  const matchPrompts=allData.map((item,i)=>{
-    if(!item.data)return`Jogo ${i+1}: ${item.match.home.name} vs ${item.match.away.name} (dados indisponíveis)`;
-    const d=item.data;
-    return`=== JOGO ${i+1}: ${d.home.name} (CASA) vs ${d.away.name} (FORA) ===
-CASA — ${d.home.name}:
-Forma recente: ${d.home.recentForm||'N/A'} | Últimos 10: ${d.home.wins}V ${d.home.draws}E ${d.home.losses}D
-Média golos marcados: ${d.home.avgGoalsFor} (geral) / ${d.home.avgGoalsForAtHome} (em casa)
-Média golos sofridos: ${d.home.avgGoalsAgainst} (geral) / ${d.home.avgGoalsAgainstAtHome} (em casa)
-Stats temporada: ${JSON.stringify(d.home.stats?.played||{})} jogos | ${JSON.stringify(d.home.stats?.goalsFor||{})} gf | ${JSON.stringify(d.home.stats?.goalsAgainst||{})} ga
-Clean sheets: ${JSON.stringify(d.home.stats?.cleanSheets||{})} | Falhou marcar: ${JSON.stringify(d.home.stats?.failedToScore||{})}
-Formações: ${JSON.stringify(d.home.stats?.lineups||[])}
-Últimos jogos: ${JSON.stringify(d.home.recentFixtures?.slice(0,8)||[])}
+  setProgress(20,'A preparar análise...');
 
-FORA — ${d.away.name}:
-Forma recente: ${d.away.recentForm||'N/A'} | Últimos 10: ${d.away.wins}V ${d.away.draws}E ${d.away.losses}D
-Média golos marcados: ${d.away.avgGoalsFor} (geral) / ${d.away.avgGoalsForAway} (fora)
-Média golos sofridos: ${d.away.avgGoalsAgainst} (geral) / ${d.away.avgGoalsAgainstAway} (fora)
-Stats temporada: ${JSON.stringify(d.away.stats?.played||{})} jogos | ${JSON.stringify(d.away.stats?.goalsFor||{})} gf | ${JSON.stringify(d.away.stats?.goalsAgainst||{})} ga
-Clean sheets: ${JSON.stringify(d.away.stats?.cleanSheets||{})} | Falhou marcar: ${JSON.stringify(d.away.stats?.failedToScore||{})}
-Formações: ${JSON.stringify(d.away.stats?.lineups||[])}
-Últimos jogos: ${JSON.stringify(d.away.recentFixtures?.slice(0,8)||[])}
+  const matchList=ready.map((m,i)=>`Jogo ${i+1}: ${m.home.name} (CASA) vs ${m.away.name} (FORA)${m.home.competition?' — '+m.home.competition:''}`).join('\n');
 
-H2H (confrontos diretos):
-Total: ${d.h2hSummary?.total||0} | ${d.home.name} venceu: ${d.h2hSummary?.homeWins||0} | ${d.away.name} venceu: ${d.h2hSummary?.awayWins||0} | Empates: ${d.h2hSummary?.draws||0}
-Média golos H2H: ${d.h2hSummary?.avgGoals||'N/A'} | +2.5 golos: ${d.h2hSummary?.over25||0}/${d.h2hSummary?.total||0} | BTTS: ${d.h2hSummary?.btts||0}/${d.h2hSummary?.total||0}
-Resultados H2H: ${JSON.stringify(d.h2h?.slice(0,8)||[])}`;
-  }).join('\n\n');
+  setProgress(50,'A analisar com IA — pode demorar alguns segundos...');
 
-  const sys=`És um analista de futebol de elite. Recebes dados estatísticos reais de múltiplas temporadas. A tua missão é gerar previsões PRECISAS baseadas exclusivamente nos dados fornecidos.
+  const system=`És um analista de futebol de elite com conhecimento profundo de todas as ligas e equipas do mundo até à temporada 2024/25.
 
-Analisa obrigatoriamente:
-1. Forma recente e consistência de cada equipa
-2. Rendimento específico em casa vs fora
-3. Historial H2H e padrões de golos nos confrontos diretos
-4. Médias de golos marcados/sofridos e clean sheets
-5. Tendências ofensivas e defensivas
-6. Formações e estilo de jogo implícito
+Para cada jogo fornecido, faz uma análise COMPLETA e DETALHADA usando o teu conhecimento sobre:
+- Forma recente das equipas (últimos 5-10 jogos)
+- Historial de confrontos diretos (H2H)
+- Médias de golos marcados e sofridos (geral, em casa, fora)
+- Qualidade e estilo de jogo de cada equipa
+- Força ofensiva e defensiva
+- Posição na tabela e objetivos da época
+- Padrões de cantos (equipas com posse alta têm mais cantos)
+- Tendências de cartões e dureza dos confrontos
+- Treinadores e sistemas táticos
+- Jogadores chave e estado da equipa
 
-Para cantos: equipas com jogo ofensivo, posse alta e pressão tendem a ter mais cantos.
-Para cartões: avalia a intensidade histórica dos confrontos.
-
-Responde APENAS com JSON válido sem markdown:
-[{"home":"...","away":"...","prediction":"Vitória Casa"|"Empate"|"Vitória Fora","confidence":78,"homeWin":55,"draw":25,"awayWin":20,"scoreRange":"1-0 a 2-1","mostLikelyScore":"1-0","btts":true,"over25":false,"expectedGoalsHome":"1.4","expectedGoalsAway":"0.8","cornersHome":"5-7","cornersAway":"3-5","cardsExpected":"3-4","homeForm":"WDWWL","awayForm":"LWDWW","risk":"BAIXO"|"MÉDIO"|"ALTO","keyFactors":["fator baseado em dados reais 1","fator 2","fator 3","fator 4","fator 5"],"analysis":"Análise de 5-6 frases baseada nos dados reais, explicando os fatores mais decisivos para esta previsão.","dataQuality":"RICA"|"MODERADA"|"LIMITADA"}]
+Responde APENAS com JSON válido, sem markdown, sem texto extra:
+[{
+  "home":"Nome Casa",
+  "away":"Nome Fora",
+  "league":"Nome da Liga",
+  "prediction":"Vitória Casa"|"Empate"|"Vitória Fora",
+  "confidence":78,
+  "homeWin":55,
+  "draw":25,
+  "awayWin":20,
+  "mostLikelyScore":"1-0",
+  "scoreRange":"1-0 a 2-1",
+  "btts":true,
+  "over25":false,
+  "expectedGoalsHome":"1.4",
+  "expectedGoalsAway":"0.8",
+  "cornersHome":"5-7",
+  "cornersAway":"3-5",
+  "cardsExpected":"2-3",
+  "homeForm":"WDWWL",
+  "awayForm":"LWDWW",
+  "risk":"BAIXO"|"MÉDIO"|"ALTO",
+  "keyFactors":["fator 1","fator 2","fator 3","fator 4","fator 5"],
+  "h2hSummary":"Resumo dos últimos confrontos diretos",
+  "analysis":"Análise detalhada de 5-6 frases explicando os fatores decisivos desta previsão."
+}]
 homeWin+draw+awayWin=100. W=win D=draw L=loss (mais recente à direita).`;
 
   try{
-    const r=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:sys,messages:[{role:'user',content:`Analisa os seguintes jogos com base nos dados reais:\n\n${matchPrompts}\n\nGera previsões detalhadas e precisas para TODOS os jogos.`}]})});
+    const r=await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system,
+        messages:[{role:'user',content:`Analisa os seguintes jogos de futebol com base no teu conhecimento histórico completo:\n\n${matchList}\n\nGera previsões detalhadas e precisas para TODOS os jogos listados.`}]
+      })
+    });
     const ai=await r.json();
     const raw=ai.content?.map(b=>b.text||'').join('')||'';
     const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
     pw.style.display='none';
     renderResults(parsed);
-    parsed.forEach(p=>{history.push({id:Date.now()+Math.random(),date:new Date().toLocaleDateString('pt-PT'),home:p.home,away:p.away,prediction:p.prediction,score:p.mostLikelyScore,confidence:p.confidence,result:'pending'});});
+    parsed.forEach(p=>{
+      history.push({id:Date.now()+Math.random(),date:new Date().toLocaleDateString('pt-PT'),home:p.home,away:p.away,league:p.league||'',prediction:p.prediction,score:p.mostLikelyScore,confidence:p.confidence,result:'pending'});
+    });
     saveHistory();
-  }catch(e){pw.style.display='none';res.innerHTML=`<div class="alert alert-err">Erro na análise: ${e.message}</div>`;}
+  }catch(e){
+    pw.style.display='none';
+    res.innerHTML=`<div class="alert alert-err">Erro: ${e.message}</div>`;
+  }
   btn.disabled=false;
 }
 
-function setProgress(done,total,msg){document.getElementById('progress-bar').style.width=(total>0?Math.round(done/total*100):0)+'%';document.getElementById('progress-msg').innerHTML=`<span class="spinner"></span>${msg}`;}
+function setProgress(pct,msg){
+  document.getElementById('progress-bar').style.width=pct+'%';
+  document.getElementById('progress-msg').innerHTML=`<span class="spinner"></span>${msg}`;
+}
 
 function renderResults(data){
   const div=document.getElementById('results');
@@ -276,17 +400,18 @@ function renderResults(data){
     const isH=p.prediction==='Vitória Casa',isD=p.prediction==='Empate';
     const fc=f=>(f||'').split('').map(r=>`<div class="form-chip ${r==='W'?'fc-w':r==='D'?'fc-d':'fc-l'}">${r}</div>`).join('');
     const factors=(p.keyFactors||[]).map(f=>`<div class="factor-item"><span class="factor-dot">▸</span><span>${f}</span></div>`).join('');
+    const riskColor=p.risk==='BAIXO'?'var(--success)':p.risk==='MÉDIO'?'var(--warning)':'var(--danger)';
     const card=document.createElement('div');
-    card.className='pred-card';card.style.animationDelay=`${i*0.08}s`;
+    card.className='pred-card';card.style.animationDelay=`${i*0.1}s`;
     card.innerHTML=`
       <div class="pred-header">
         <div>
-          <div class="pred-meta">${p.dataQuality?'DADOS: '+p.dataQuality:''}</div>
+          <div class="pred-meta">${p.league||''}</div>
           <div class="pred-teams">${p.home} <span>vs</span> ${p.away}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
           <div class="conf-pill ${cc}">${p.confidence}% CONFIANÇA</div>
-          ${p.risk?`<span class="tag" style="font-size:0.65rem;padding:3px 9px;border-radius:2px;background:${p.risk==='BAIXO'?'rgba(74,222,128,0.12)':p.risk==='MÉDIO'?'rgba(250,204,21,0.1)':'rgba(248,113,113,0.1)'};color:${p.risk==='BAIXO'?'var(--success)':p.risk==='MÉDIO'?'var(--warning)':'var(--danger)'}">RISCO ${p.risk}</span>`:''}
+          ${p.risk?`<span style="font-size:0.65rem;font-family:'IBM Plex Mono',monospace;padding:3px 9px;border-radius:2px;background:${p.risk==='BAIXO'?'rgba(74,222,128,0.1)':p.risk==='MÉDIO'?'rgba(250,204,21,0.08)':'rgba(248,113,113,0.08)'};color:${riskColor}">RISCO ${p.risk}</span>`:''}
         </div>
       </div>
       <div class="pred-body">
@@ -298,17 +423,22 @@ function renderResults(data){
         <div class="metrics-grid">
           <div class="metric hl"><span class="metric-label">PREVISÃO</span><div class="metric-val" style="font-size:0.85rem;color:var(--accent);">${isH?'CASA':isD?'EMPATE':'FORA'}</div></div>
           <div class="metric hl"><span class="metric-label">MARCADOR</span><div class="metric-val">${p.mostLikelyScore||'—'}</div></div>
-          <div class="metric"><span class="metric-label">INTERVALO</span><div class="metric-val" style="font-size:0.75rem;">${p.scoreRange||'—'}</div></div>
+          <div class="metric"><span class="metric-label">INTERVALO</span><div class="metric-val" style="font-size:0.72rem;">${p.scoreRange||'—'}</div></div>
           <div class="metric"><span class="metric-label">xG CASA</span><div class="metric-val">${p.expectedGoalsHome||'—'}</div></div>
           <div class="metric"><span class="metric-label">xG FORA</span><div class="metric-val">${p.expectedGoalsAway||'—'}</div></div>
-          <div class="metric"><span class="metric-label">AMBAS MARCAM</span><div class="metric-val" style="color:${p.btts?'var(--success)':'var(--danger)'};">${p.btts?'SIM':'NÃO'}</div></div>
+          <div class="metric"><span class="metric-label">BTTS</span><div class="metric-val" style="color:${p.btts?'var(--success)':'var(--danger)'};">${p.btts?'SIM':'NÃO'}</div></div>
           <div class="metric"><span class="metric-label">+2.5 GOLOS</span><div class="metric-val" style="color:${p.over25?'var(--success)':'var(--danger)'};">${p.over25?'SIM':'NÃO'}</div></div>
           <div class="metric"><span class="metric-label">CANTOS CASA</span><div class="metric-val" style="font-size:0.88rem;">${p.cornersHome||'—'}</div></div>
           <div class="metric"><span class="metric-label">CANTOS FORA</span><div class="metric-val" style="font-size:0.88rem;">${p.cornersAway||'—'}</div></div>
           <div class="metric"><span class="metric-label">CARTÕES</span><div class="metric-val" style="font-size:0.88rem;">${p.cardsExpected||'—'}</div></div>
         </div>
-        ${(p.homeForm||p.awayForm)?`<div class="form-row-display">${p.homeForm?`<div class="form-block"><div class="form-lbl">FORMA ${p.home}</div><div class="form-chips">${fc(p.homeForm)}</div></div>`:''} ${p.awayForm?`<div class="form-block"><div class="form-lbl">FORMA ${p.away}</div><div class="form-chips">${fc(p.awayForm)}</div></div>`:''}</div>`:''}
-        ${factors?`<div class="section-label" style="font-size:0.58rem;">FATORES DECISIVOS</div><div class="factors-list">${factors}</div>`:''}
+        ${(p.homeForm||p.awayForm)?`
+        <div class="form-row-display">
+          ${p.homeForm?`<div class="form-block"><div class="form-lbl">FORMA ${p.home}</div><div class="form-chips">${fc(p.homeForm)}</div></div>`:''}
+          ${p.awayForm?`<div class="form-block"><div class="form-lbl">FORMA ${p.away}</div><div class="form-chips">${fc(p.awayForm)}</div></div>`:''}
+        </div>`:''}
+        ${p.h2hSummary?`<div style="background:var(--surface2);border-radius:4px;padding:10px 14px;margin-bottom:12px;font-size:0.8rem;color:#ccc;"><span style="font-size:0.6rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:2px;margin-right:8px;">H2H</span>${p.h2hSummary}</div>`:''}
+        ${factors?`<div class="section-label" style="font-size:0.58rem;margin-top:4px;">FATORES DECISIVOS</div><div class="factors-list">${factors}</div>`:''}
         <div class="analysis-box">${p.analysis||''}</div>
       </div>`;
     div.appendChild(card);
@@ -322,12 +452,30 @@ function renderHistory(){
   list.innerHTML=[...history].reverse().map(h=>{
     const tc=h.result==='correct'?'tag-c':h.result==='wrong'?'tag-w':'tag-p';
     const tt=h.result==='correct'?'ACERTO':h.result==='wrong'?'ERRO':'PENDENTE';
-    return`<div class="hist-row"><div><div style="font-weight:600;font-size:0.88rem;">${h.home} vs ${h.away}</div><div style="font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px;">${h.date} · ${h.confidence}% conf.</div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:0.78rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);">${h.prediction}</span><span class="tag ${tc}">${tt}</span>${h.result==='pending'?`<button class="btn btn-ghost" style="font-size:0.58rem;padding:3px 8px;" onclick="markResult('${h.id}','correct')">✔</button><button class="btn btn-ghost" style="font-size:0.58rem;padding:3px 8px;color:var(--danger);border-color:var(--danger);" onclick="markResult('${h.id}','wrong')">✘</button>`:''}</div></div>`;
+    return`<div class="hist-row">
+      <div>
+        <div style="font-weight:600;font-size:0.88rem;">${h.home} vs ${h.away}</div>
+        <div style="font-size:0.68rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px;">${h.league||''} · ${h.date} · ${h.confidence}% conf.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:0.78rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);">${h.prediction}</span>
+        <span class="tag ${tc}">${tt}</span>
+        ${h.result==='pending'?`
+          <button class="btn btn-ghost" style="font-size:0.58rem;padding:3px 8px;" onclick="markResult('${h.id}','correct')">✔</button>
+          <button class="btn btn-ghost" style="font-size:0.58rem;padding:3px 8px;color:var(--danger);border-color:var(--danger);" onclick="markResult('${h.id}','wrong')">✘</button>`:''}
+      </div>
+    </div>`;
   }).join('');
   updateStats();
 }
 function markResult(id,result){const idx=history.findIndex(h=>String(h.id)===String(id));if(idx>-1){history[idx].result=result;saveHistory();renderHistory();}}
-function updateStats(){const t=history.length,c=history.filter(h=>h.result==='correct').length,w=history.filter(h=>h.result==='wrong').length;document.getElementById('s-total').textContent=t;document.getElementById('s-correct').textContent=c;document.getElementById('s-wrong').textContent=w;document.getElementById('s-pct').textContent=(c+w)>0?Math.round(c/(c+w)*100)+'%':'—';}
+function updateStats(){
+  const t=history.length,c=history.filter(h=>h.result==='correct').length,w=history.filter(h=>h.result==='wrong').length;
+  document.getElementById('s-total').textContent=t;
+  document.getElementById('s-correct').textContent=c;
+  document.getElementById('s-wrong').textContent=w;
+  document.getElementById('s-pct').textContent=(c+w)>0?Math.round(c/(c+w)*100)+'%':'—';
+}
 function exportHistory(){const b=new Blob([JSON.stringify(history,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='scoutai_v3.json';a.click();}
 function clearHistory(){if(confirm('Apagar todo o histórico?')){history=[];saveHistory();renderHistory();}}
 </script>
